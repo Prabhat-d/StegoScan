@@ -1,0 +1,1412 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StegoScan — LSB Steganography Detection</title>
+
+    <!-- Stylesheets (split by section — see /css) -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/base.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/layout.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/header-hero.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/tabs.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/forms.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/results.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/misc.css') }}"
+    />
+  </head>
+  <body>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="wrap">
+      <header>
+        <div class="brand">
+          <div class="brand-icon">SS</div>
+          <div>
+            <div class="brand-name">StegoScan</div>
+            <div class="brand-tag">LSB Steganography Detection System</div>
+          </div>
+        </div>
+        <div class="header-badge">⬤ SYSTEM ONLINE</div>
+      </header>
+
+      <div style="padding: 0 48px">
+        <div class="hero" style="padding: 56px 0 40px">
+          <div class="hero-orbit">
+            <div class="orbit-ring"><div class="orbit-dot"></div></div>
+            <div class="orbit-ring"><div class="orbit-dot"></div></div>
+            <div class="orbit-ring"></div>
+          </div>
+          <div class="hero-eyebrow">
+            <span class="hero-dot"></span>
+            Computer Science Project — Cybersecurity
+          </div>
+          <h1 class="hero-title">
+            Steganography<br /><span>Detection Tool</span>
+          </h1>
+          <p class="hero-sub">
+            Hide secret messages inside images invisibly. Extract them
+            accurately. Detect tampering using Chi-Square statistical analysis.
+          </p>
+        </div>
+
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchTab('embed', this)">
+            <div class="tab-icon">🔒</div>
+            Embed Message
+          </button>
+          <button class="tab-btn" onclick="switchTab('extract', this)">
+            <div class="tab-icon">🔍</div>
+            Extract Message
+          </button>
+          <button class="tab-btn" onclick="switchTab('detect', this)">
+            <div class="tab-icon">📊</div>
+            Detect Steganography
+          </button>
+        </div>
+      </div>
+
+      <main>
+        <!-- EMBED -->
+        <div class="panel active" id="panel-embed">
+          <div class="panel-header">
+            <div class="panel-title">Hide a secret message</div>
+            <div class="panel-desc">
+              Select a natural photograph and enter your message. The tool
+              embeds it into the image's least significant bits — completely
+              invisible to the human eye.
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Carrier image</div>
+            <div class="dropzone" id="embed-drop">
+              <input
+                type="file"
+                id="embed-file"
+                accept="image/*"
+                onchange="
+                  resetResults();
+                  previewImage(this, 'embed-prev');
+                  showImageCapacity(this);
+                "
+              />
+              <div class="dz-icon">🖼️</div>
+              <div class="dz-title">Drop your image here</div>
+              <div class="dz-sub">
+                or <span>click to browse</span> — PNG, JPG, WEBP
+              </div>
+            </div>
+
+            <div
+              id="capacity-info"
+              style="
+                display: none;
+                margin-top: 12px;
+                padding: 10px 14px;
+                border-radius: 10px;
+                background: rgba(59, 130, 246, 0.12);
+                color: #60a5fa;
+                border: 1px solid rgba(59, 130, 246, 0.25);
+                font-size: 14px;
+                font-weight: 500;
+              "
+            ></div>
+
+            <div
+              class="preview-wrap"
+              id="embed-prev-wrap"
+              style="display: none"
+            >
+              <img id="embed-prev" class="preview-img" style="display: block" />
+              <button
+                type="button"
+                class="img-remove"
+                onclick="
+                  clearSelectedImage(
+                    'embed-file',
+                    'embed-prev',
+                    'embed-prev-wrap',
+                  );
+                  document.getElementById('capacity-info').style.display =
+                    'none';
+                  resetEmbedForm();
+                "
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">What to hide</div>
+
+            <div class="custom-select" id="hide-type-select">
+              <button
+                type="button"
+                class="custom-select-trigger"
+                onclick="toggleCustomSelect()"
+              >
+                <span id="hide-type-selected">Text message</span>
+                <span class="custom-select-arrow">⌄</span>
+              </button>
+
+              <div class="custom-select-menu" id="hide-type-menu">
+                <div
+                  class="custom-select-option active"
+                  data-value="text"
+                  onclick="selectHideType('text', 'Text message')"
+                >
+                  Text message
+                </div>
+                <div
+                  class="custom-select-option"
+                  data-value="file"
+                  onclick="selectHideType('file', 'File document')"
+                >
+                  File document
+                </div>
+                <div
+                  class="custom-select-option"
+                  data-value="image"
+                  onclick="selectHideType('image', 'Image file')"
+                >
+                  Image file
+                </div>
+              </div>
+
+              <input type="hidden" id="hide-type" value="text" />
+            </div>
+          </div>
+
+          <div class="card hide-input-block" id="hide-text-block">
+            <div class="card-label">Secret message</div>
+            <textarea
+              id="embed-msg"
+              placeholder="Type your secret message here...&#10;It will be hidden invisibly inside the image using LSB encoding."
+            ></textarea>
+          </div>
+
+          <div
+            class="card hide-input-block"
+            id="hide-file-block"
+            style="display: none"
+          >
+            <div class="card-label">Select file to hide</div>
+
+            <div class="file-picker" id="secret-file-picker">
+              <input
+                type="file"
+                id="secret-file"
+                onchange="
+                  updatePickedFile(
+                    this,
+                    'secret-file-picker',
+                    'secret-file-name',
+                    'Choose any file to hide inside the image',
+                  );
+                  showHiddenFile(this);
+                "
+              />
+
+              <label for="secret-file" class="file-picker-label">
+                <div class="file-picker-left">
+                  <div class="file-picker-icon">📄</div>
+                  <div class="file-picker-text">
+                    <div class="file-picker-title">Hidden file</div>
+                    <div class="file-picker-sub" id="secret-file-name">
+                      Choose any file to hide inside the image
+                    </div>
+                  </div>
+                </div>
+                <div class="file-picker-btn">Browse</div>
+              </label>
+            </div>
+
+            <div
+              id="hidden-file-info"
+              style="
+                display: none;
+                margin-top: 10px;
+                padding: 10px 14px;
+                border-radius: 10px;
+                background: rgba(59, 130, 246, 0.12);
+                color: #60a5fa;
+                border: 1px solid rgba(59, 130, 246, 0.25);
+                font-size: 14px;
+                font-weight: 500;
+              "
+            ></div>
+          </div>
+
+          <div
+            class="card hide-input-block"
+            id="hide-image-block"
+            style="display: none"
+          >
+            <div class="card-label">Select image to hide</div>
+
+            <div class="file-picker" id="secret-image-picker">
+              <input
+                type="file"
+                id="secret-image"
+                accept="image/*"
+                onchange="
+                  updatePickedFile(
+                    this,
+                    'secret-image-picker',
+                    'secret-image-name',
+                    'Choose an image file to hide inside the cover image',
+                  );
+                  showHiddenImage(this);
+                "
+              />
+
+              <label for="secret-image" class="file-picker-label">
+                <div class="file-picker-left">
+                  <div class="file-picker-icon">🖼️</div>
+                  <div class="file-picker-text">
+                    <div class="file-picker-title">Hidden image</div>
+                    <div class="file-picker-sub" id="secret-image-name">
+                      Choose an image file to hide inside the cover image
+                    </div>
+                  </div>
+                </div>
+                <div class="file-picker-btn">Browse</div>
+              </label>
+            </div>
+
+            <!-- Hidden Image Preview -->
+            <div
+              class="preview-wrap"
+              id="hidden-image-wrap"
+              style="display: none"
+            >
+              <img id="hidden-image-preview" class="preview-img" />
+
+              <button
+                type="button"
+                class="img-remove"
+                onclick="clearHiddenImage()"
+              >
+                ×
+              </button>
+            </div>
+
+            <div
+              id="hidden-image-info"
+              style="
+                display: none;
+                margin-top: 12px;
+                padding: 12px 16px;
+                border-radius: 12px;
+                background: rgba(59, 130, 246, 0.12);
+                color: #60a5fa;
+                border: 1px solid rgba(59, 130, 246, 0.25);
+                font-size: 14px;
+                font-weight: 500;
+              "
+            ></div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Embedding Profile</div>
+
+            <input type="hidden" id="embedding-profile" value="standard" />
+
+            <div class="custom-select" id="profile-select">
+              <button
+                type="button"
+                class="custom-select-trigger"
+                onclick="toggleProfileSelect()"
+              >
+                <span id="profile-selected"> Standard </span>
+
+                <span class="custom-select-arrow"> ⌄ </span>
+              </button>
+
+              <div class="custom-select-menu" id="profile-menu">
+                <div
+                  class="custom-select-option active"
+                  data-value="standard"
+                  onclick="selectProfile('standard', 'Standard')"
+                >
+                  Standard
+                </div>
+
+                <div
+                  class="custom-select-option"
+                  data-value="robust"
+                  onclick="selectProfile('robust', 'Robust')"
+                >
+                  Robust
+                </div>
+              </div>
+            </div>
+
+            <div
+              id="profile-description"
+              style="
+                margin-top: 14px;
+                font-size: 13px;
+                color: var(--text2);
+                line-height: 1.6;
+              "
+            >
+              Standard profile embeds only the original payload for minimal
+              image modification.
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-label">Optional password</div>
+            <input
+              type="password"
+              id="embed-password"
+              placeholder="Leave blank if you do not want password protection"
+              style="
+                width: 100%;
+                padding: 12px 14px;
+                border-radius: 10px;
+                border: 1px solid var(--border2);
+                background: rgba(255, 255, 255, 0.04);
+                color: var(--text);
+                font: inherit;
+              "
+            />
+            <div
+              id="embed-pass-warn"
+              style="
+                font-size: 13px;
+                color: var(--amber);
+                margin-top: 8px;
+                display: none;
+              "
+            >
+              Warning: passwords are not stored. If you lose this password the
+              hidden message cannot be recovered. Use a strong, memorable
+              password.
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="embed-btn" onclick="runEmbed()">
+            <span>🔒</span><span>Embed into image</span>
+          </button>
+          <div class="err" id="embed-err"></div>
+          <div
+            id="embed-success"
+            style="
+              display: none;
+              margin-top: 14px;
+              padding: 12px 16px;
+              border-radius: 12px;
+              background: rgba(16, 185, 129, 0.12);
+              color: #10b981;
+              border: 1px solid rgba(16, 185, 129, 0.25);
+              font-size: 14px;
+              font-weight: 500;
+            "
+          ></div>
+          <br />
+          <div class="result-box" id="embed-result">
+            <div class="result-header">
+              <div class="badge badge-success">Embedded successfully</div>
+            </div>
+            <div class="img-compare">
+              <div class="img-slot slot-original">
+                <div class="img-slot-label"><span></span>Original image</div>
+                <img id="embed-orig" />
+              </div>
+              <div class="img-slot slot-stego">
+                <div class="img-slot-label">
+                  <span></span>Stego image (message hidden inside)
+                </div>
+                <img id="embed-stego" />
+              </div>
+            </div>
+            <div class="capacity-wrap">
+              <div class="cap-label" id="cap-label">
+                Loading capacity info...
+              </div>
+              <div class="cap-track">
+                <div class="cap-fill" id="cap-fill" style="width: 0%"></div>
+              </div>
+            </div>
+            <button class="dl-btn" id="dl-btn">
+              ⬇ &nbsp; Download stego image
+            </button>
+            <div class="meta-line">
+              <div class="meta-item">
+                <span class="dot"></span><span id="meta-bits">—</span> bits used
+              </div>
+              <div class="meta-item">
+                <span class="dot"></span>Max capacity
+                <span id="meta-cap">—</span> bits
+              </div>
+              <div class="meta-item">
+                <span class="dot"></span>LSB encoding — max ±1 pixel change
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXTRACT -->
+        <div class="panel" id="panel-extract">
+          <div class="panel-header">
+            <div class="panel-title">Recover a hidden message</div>
+            <div class="panel-desc">
+              Upload a stego image created with StegoScan. The tool reads the
+              least significant bits and reconstructs the original message.
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Stego image</div>
+            <div class="dropzone" id="extract-drop">
+              <input
+                type="file"
+                id="extract-file"
+                accept="image/*"
+                onchange="
+                  resetResults();
+                  previewImage(this, 'extract-prev');
+                "
+              />
+              <div class="dz-icon">🔍</div>
+              <div class="dz-title">Drop the stego image here</div>
+              <div class="dz-sub">
+                or <span>click to browse</span> — must be a PNG stego image
+              </div>
+            </div>
+            <div
+              class="preview-wrap"
+              id="extract-prev-wrap"
+              style="display: none"
+            >
+              <img
+                id="extract-prev"
+                class="preview-img"
+                style="display: block"
+              />
+              <button
+                type="button"
+                class="img-remove"
+                onclick="
+                  resetResults();
+                  clearSelectedImage(
+                    'extract-file',
+                    'extract-prev',
+                    'extract-prev-wrap',
+                  );
+                "
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Password (if used)</div>
+            <input
+              type="password"
+              id="extract-password"
+              placeholder="Enter the password used during embedding"
+              style="
+                width: 100%;
+                padding: 12px 14px;
+                border-radius: 10px;
+                border: 1px solid var(--border2);
+                background: rgba(255, 255, 255, 0.04);
+                color: var(--text);
+                font: inherit;
+              "
+            />
+          </div>
+
+          <button
+            id="extract-btn"
+            class="btn btn-primary"
+            onclick="runExtract()"
+          >
+            <span>🔍</span><span>Extract message</span>
+          </button>
+          <div class="err" id="extract-err"></div>
+
+          <div class="result-box" id="extract-result">
+            <div class="result-header">
+              <div class="badge badge-success" id="extract-badge">
+                Message recovered
+              </div>
+            </div>
+            <div class="card-label" style="margin-bottom: 12px">
+              Recovered message
+            </div>
+            <div class="extracted-msg" id="extract-msg"></div>
+            <button
+              id="copy-extract-btn"
+              class="copy-btn"
+              style="display: none"
+              onclick="copyExtractedText()"
+            >
+              📋 Copy Message
+            </button>
+            <button
+              id="extract-download"
+              class="dl-btn"
+              style="display: none; margin-top: 18px"
+            >
+              ⬇ Download Extracted File
+            </button>
+          </div>
+        </div>
+
+        <!-- DETECT -->
+        <div class="panel" id="panel-detect">
+          <div class="panel-header">
+            <div class="panel-title">Detect steganography</div>
+            <div class="panel-desc">
+              Statistical analysis examines the image for signs of hidden
+              information without extracting the embedded data.
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Image to analyse</div>
+            <div class="dropzone" id="detect-drop">
+              <input
+                type="file"
+                id="detect-file"
+                accept="image/*"
+                onchange="
+                  resetResults();
+                  previewImage(this, 'detect-prev');
+                "
+              />
+              <div class="dz-icon">📊</div>
+              <div class="dz-title">Drop image for analysis</div>
+              <div class="dz-sub">
+                or <span>click to browse</span> — PNG · JPG · WEBP
+              </div>
+            </div>
+            <div
+              class="preview-wrap"
+              id="detect-prev-wrap"
+              style="display: none"
+            >
+              <img
+                id="detect-prev"
+                class="preview-img"
+                style="display: block"
+              />
+              <button
+                type="button"
+                class="img-remove"
+                onclick="
+                  resetResults();
+                  clearSelectedImage(
+                    'detect-file',
+                    'detect-prev',
+                    'detect-prev-wrap',
+                  );
+                "
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          <button id="detect-btn" class="btn btn-primary" onclick="runDetect()">
+            <span>📊</span><span>Run full analysis</span>
+          </button>
+          <div class="err" id="detect-err"></div>
+
+          <div class="result-box" id="detect-result">
+            <div
+              id="detect-warning"
+              style="
+                display: none;
+                margin-bottom: 14px;
+                padding: 12px 16px;
+                border-radius: 12px;
+                background: rgba(245, 158, 11, 0.12);
+                color: #f59e0b;
+                border: 1px solid rgba(245, 158, 11, 0.25);
+                font-size: 14px;
+                font-weight: 500;
+              "
+            ></div>
+
+            <!-- MAIN VERDICT BANNER -->
+            <div
+              id="verdict-banner"
+              style="
+                border-radius: 14px;
+                padding: 22px 24px;
+                margin-bottom: 24px;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                border: 1px solid;
+                animation: verdict-pop 0.5s cubic-bezier(0.34, 1.5, 0.64, 1)
+                  both;
+              "
+            >
+              <div
+                id="verdict-icon"
+                style="font-size: 36px; flex-shrink: 0"
+              ></div>
+              <div>
+                <div
+                  id="verdict-title"
+                  style="font-size: 18px; font-weight: 700; margin-bottom: 4px"
+                ></div>
+                <div
+                  id="verdict-sub"
+                  style="font-size: 13px; opacity: 0.85; line-height: 1.5"
+                ></div>
+              </div>
+            </div>
+
+            <!-- SCORE + CONFIDENCE -->
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+                margin-bottom: 20px;
+              "
+            >
+              <!-- RISK SCORE CIRCLE -->
+              <div
+                style="
+                  background: var(--bg2);
+                  border: 1px solid var(--border);
+                  border-radius: 14px;
+                  padding: 20px;
+                  display: flex;
+                  align-items: center;
+                  gap: 18px;
+                "
+              >
+                <div
+                  style="
+                    position: relative;
+                    width: 72px;
+                    height: 72px;
+                    flex-shrink: 0;
+                  "
+                >
+                  <svg width="72" height="72" style="transform: rotate(-90deg)">
+                    <circle
+                      cx="36"
+                      cy="36"
+                      r="28"
+                      fill="none"
+                      stroke="rgba(255,255,255,0.06)"
+                      stroke-width="6"
+                    />
+                    <circle
+                      id="score-ring"
+                      cx="36"
+                      cy="36"
+                      r="28"
+                      fill="none"
+                      stroke-width="6"
+                      stroke-dasharray="175.9"
+                      stroke-dashoffset="175.9"
+                      stroke-linecap="round"
+                      style="
+                        transition: stroke-dashoffset 1.2s
+                          cubic-bezier(0.34, 1.2, 0.64, 1);
+                      "
+                    />
+                  </svg>
+                  <div
+                    style="
+                      position: absolute;
+                      inset: 0;
+                      display: grid;
+                      place-items: center;
+                    "
+                  >
+                    <div
+                      id="score-num"
+                      style="
+                        font-family: var(--mono);
+                        font-size: 18px;
+                        font-weight: 700;
+                      "
+                    >
+                      0
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div
+                    style="
+                      font-size: 10px;
+                      font-weight: 700;
+                      letter-spacing: 1.5px;
+                      text-transform: uppercase;
+                      color: var(--text3);
+                      font-family: var(--mono);
+                      margin-bottom: 6px;
+                    "
+                  >
+                    Risk Score
+                  </div>
+                  <div
+                    id="score-label"
+                    style="font-size: 13px; font-weight: 600"
+                  ></div>
+                  <div
+                    style="
+                      font-size: 11px;
+                      color: var(--text3);
+                      margin-top: 3px;
+                    "
+                  >
+                    out of 100
+                  </div>
+                </div>
+              </div>
+
+              <!-- REASONS -->
+              <div
+                style="
+                  background: var(--bg2);
+                  border: 1px solid var(--border);
+                  border-radius: 14px;
+                  padding: 18px;
+                "
+              >
+                <div
+                  style="
+                    font-size: 10px;
+                    font-weight: 700;
+                    letter-spacing: 1.5px;
+                    text-transform: uppercase;
+                    color: var(--text3);
+                    font-family: var(--mono);
+                    margin-bottom: 12px;
+                  "
+                >
+                  Detection Signals
+                </div>
+                <div
+                  id="reasons-list"
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: 7px;
+                    font-size: 12px;
+                    color: var(--text2);
+                    line-height: 1.5;
+                  "
+                ></div>
+              </div>
+            </div>
+
+            <!-- REGION ANALYSIS — DECISION MAKER -->
+            <div
+              style="
+                background: var(--bg2);
+                border: 1px solid var(--border);
+                border-radius: 14px;
+                padding: 20px;
+                margin-bottom: 14px;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 16px;
+                "
+              >
+                <div>
+                  <div
+                    style="
+                      font-size: 10px;
+                      font-weight: 700;
+                      letter-spacing: 1.5px;
+                      text-transform: uppercase;
+                      color: var(--text3);
+                      font-family: var(--mono);
+                      margin-bottom: 4px;
+                    "
+                  >
+                    Region LSB Difference
+                  </div>
+                  <div style="font-size: 12px; color: var(--text2)">
+                    Detects sequential LSB embedding by comparing image regions
+                  </div>
+                </div>
+                <div
+                  id="region-badge"
+                  style="
+                    font-size: 10px;
+                    font-weight: 700;
+                    padding: 4px 12px;
+                    border-radius: 12px;
+                    font-family: var(--mono);
+                  "
+                >
+                  —
+                </div>
+              </div>
+
+              <!-- REGION BARS -->
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr 1fr;
+                  gap: 10px;
+                  margin-bottom: 16px;
+                "
+              >
+                <div
+                  style="
+                    background: var(--bg3);
+                    border-radius: 10px;
+                    padding: 14px;
+                    text-align: center;
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 10px;
+                      color: var(--text3);
+                      font-family: var(--mono);
+                      letter-spacing: 1px;
+                      text-transform: uppercase;
+                      margin-bottom: 8px;
+                    "
+                  >
+                    Start Region
+                  </div>
+                  <div
+                    id="region-start"
+                    style="
+                      font-size: 20px;
+                      font-weight: 700;
+                      font-family: var(--mono);
+                    "
+                  >
+                    —
+                  </div>
+                  <div
+                    style="
+                      font-size: 10px;
+                      color: var(--text3);
+                      margin-top: 4px;
+                    "
+                  >
+                    avg LSB ratio
+                  </div>
+                </div>
+                <div
+                  style="
+                    background: var(--bg3);
+                    border-radius: 10px;
+                    padding: 14px;
+                    text-align: center;
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 10px;
+                      color: var(--text3);
+                      font-family: var(--mono);
+                      letter-spacing: 1px;
+                      text-transform: uppercase;
+                      margin-bottom: 8px;
+                    "
+                  >
+                    End Region
+                  </div>
+                  <div
+                    id="region-end"
+                    style="
+                      font-size: 20px;
+                      font-weight: 700;
+                      font-family: var(--mono);
+                    "
+                  >
+                    —
+                  </div>
+                  <div
+                    style="
+                      font-size: 10px;
+                      color: var(--text3);
+                      margin-top: 4px;
+                    "
+                  >
+                    avg LSB ratio
+                  </div>
+                </div>
+                <div
+                  style="
+                    background: var(--bg3);
+                    border-radius: 10px;
+                    padding: 14px;
+                    text-align: center;
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                  "
+                >
+                  <div
+                    style="
+                      font-size: 10px;
+                      color: var(--text3);
+                      font-family: var(--mono);
+                      letter-spacing: 1px;
+                      text-transform: uppercase;
+                      margin-bottom: 8px;
+                    "
+                  >
+                    Difference
+                  </div>
+                  <div
+                    id="region-diff"
+                    style="
+                      font-size: 20px;
+                      font-weight: 700;
+                      font-family: var(--mono);
+                    "
+                  >
+                    —
+                  </div>
+                  <div
+                    style="
+                      font-size: 10px;
+                      color: var(--text3);
+                      margin-top: 4px;
+                    "
+                  >
+                    threshold: 0.02
+                  </div>
+                </div>
+              </div>
+
+              <!-- DIFFERENCE GAUGE -->
+              <div
+                style="
+                  font-size: 11px;
+                  color: var(--text3);
+                  margin-bottom: 6px;
+                  display: flex;
+                  justify-content: space-between;
+                "
+              >
+                <span>Region Difference</span
+                ><span id="region-diff-pct" style="font-family: var(--mono)"
+                  >—</span
+                >
+              </div>
+              <div
+                style="
+                  height: 6px;
+                  background: var(--bg3);
+                  border-radius: 3px;
+                  overflow: hidden;
+                  border: 1px solid var(--border);
+                  position: relative;
+                "
+              >
+                <div
+                  style="
+                    position: absolute;
+                    top: 0;
+                    left: calc(2% * 5);
+                    width: 1px;
+                    height: 100%;
+                    background: rgba(255, 255, 255, 0.2);
+                  "
+                ></div>
+                <div
+                  id="region-gauge"
+                  style="
+                    height: 100%;
+                    border-radius: 3px;
+                    width: 0%;
+                    transition: width 1.2s cubic-bezier(0.34, 1.2, 0.64, 1);
+                  "
+                ></div>
+              </div>
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  font-size: 9px;
+                  color: var(--text3);
+                  font-family: var(--mono);
+                  margin-top: 5px;
+                "
+              >
+                <span>0</span><span>0.01</span><span>0.02 ← threshold</span
+                ><span>0.03+</span>
+              </div>
+            </div>
+
+            <!-- SUPPORTING METRICS ROW -->
+            <div
+              style="
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+                margin-bottom: 14px;
+              "
+            >
+              <div
+                style="
+                  background: var(--bg2);
+                  border: 1px solid var(--border);
+                  border-radius: 12px;
+                  padding: 16px;
+                  position: relative;
+                  overflow: hidden;
+                "
+              >
+                <div
+                  style="
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    height: 2px;
+                    background: linear-gradient(
+                      90deg,
+                      var(--accent),
+                      var(--accent2)
+                    );
+                    transform: scaleX(0);
+                    transform-origin: left;
+                    transition: transform 0.6s 0.3s ease;
+                  "
+                  class="metric-bar"
+                ></div>
+                <div
+                  style="
+                    font-size: 10px;
+                    font-weight: 700;
+                    letter-spacing: 1.2px;
+                    text-transform: uppercase;
+                    color: var(--text3);
+                    font-family: var(--mono);
+                    margin-bottom: 10px;
+                  "
+                >
+                  LSB Balance
+                </div>
+                <div
+                  id="sv-balance"
+                  style="
+                    font-size: 22px;
+                    font-weight: 700;
+                    font-family: var(--mono);
+                  "
+                >
+                  —
+                </div>
+                <div
+                  style="font-size: 11px; color: var(--text3); margin-top: 4px"
+                >
+                  ideal natural: ~50%
+                </div>
+              </div>
+              <div
+                style="
+                  background: var(--bg2);
+                  border: 1px solid var(--border);
+                  border-radius: 12px;
+                  padding: 16px;
+                  position: relative;
+                  overflow: hidden;
+                "
+              >
+                <div
+                  style="
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    height: 2px;
+                    background: linear-gradient(
+                      90deg,
+                      var(--cyan, #06b6d4),
+                      var(--accent2)
+                    );
+                    transform: scaleX(0);
+                    transform-origin: left;
+                    transition: transform 0.6s 0.5s ease;
+                  "
+                  class="metric-bar"
+                ></div>
+                <div
+                  style="
+                    font-size: 10px;
+                    font-weight: 700;
+                    letter-spacing: 1.2px;
+                    text-transform: uppercase;
+                    color: var(--text3);
+                    font-family: var(--mono);
+                    margin-bottom: 10px;
+                  "
+                >
+                  LSB Entropy
+                </div>
+                <div
+                  id="sv-entropy"
+                  style="
+                    font-size: 22px;
+                    font-weight: 700;
+                    font-family: var(--mono);
+                  "
+                >
+                  —
+                </div>
+                <div
+                  style="font-size: 11px; color: var(--text3); margin-top: 4px"
+                >
+                  max = 1.0 (random)
+                </div>
+              </div>
+              <div
+                style="
+                  background: var(--bg2);
+                  border: 1px solid var(--border);
+                  border-radius: 12px;
+                  padding: 16px;
+                  position: relative;
+                  overflow: hidden;
+                "
+              >
+                <div
+                  style="
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    height: 2px;
+                    background: linear-gradient(
+                      90deg,
+                      var(--amber, #f59e0b),
+                      var(--accent2)
+                    );
+                    transform: scaleX(0);
+                    transform-origin: left;
+                    transition: transform 0.6s 0.7s ease;
+                  "
+                  class="metric-bar"
+                ></div>
+                <div
+                  style="
+                    font-size: 10px;
+                    font-weight: 700;
+                    letter-spacing: 1.2px;
+                    text-transform: uppercase;
+                    color: var(--text3);
+                    font-family: var(--mono);
+                    margin-bottom: 10px;
+                  "
+                >
+                  Chi-Square p
+                </div>
+                <div
+                  id="sv-chip"
+                  style="
+                    font-size: 22px;
+                    font-weight: 700;
+                    font-family: var(--mono);
+                  "
+                >
+                  —
+                </div>
+                <div
+                  style="font-size: 11px; color: var(--text3); margin-top: 4px"
+                >
+                  p &lt; 0.05 = suspicious
+                </div>
+              </div>
+            </div>
+
+            <!-- LSB PLANE + STATS -->
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+                margin-bottom: 16px;
+              "
+            >
+              <div
+                style="
+                  background: var(--bg2);
+                  border: 1px solid var(--border);
+                  border-radius: 12px;
+                  padding: 14px;
+                  text-align: center;
+                "
+              >
+                <div
+                  style="
+                    font-size: 10px;
+                    color: var(--text3);
+                    font-family: var(--mono);
+                    letter-spacing: 1px;
+                    text-transform: uppercase;
+                    margin-bottom: 10px;
+                  "
+                >
+                  Red channel LSB plane
+                </div>
+                <img
+                  id="lsb-img"
+                  style="
+                    max-width: 100%;
+                    max-height: 150px;
+                    object-fit: contain;
+                    border-radius: 6px;
+                    image-rendering: pixelated;
+                    animation: fade-in 0.6s ease;
+                  "
+                />
+              </div>
+              <div
+                style="
+                  background: var(--bg2);
+                  border: 1px solid var(--border);
+                  border-radius: 12px;
+                  padding: 16px;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 10px;
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 13px;
+                  "
+                >
+                  <span style="color: var(--text2)">Total bits</span
+                  ><span
+                    style="font-weight: 600; font-family: var(--mono)"
+                    id="ls-total"
+                    >—</span
+                  >
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 13px;
+                  "
+                >
+                  <span style="color: var(--text2)">LSB ones</span
+                  ><span
+                    style="font-weight: 600; font-family: var(--mono)"
+                    id="ls-ones"
+                    >—</span
+                  >
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 13px;
+                  "
+                >
+                  <span style="color: var(--text2)">LSB zeros</span
+                  ><span
+                    style="font-weight: 600; font-family: var(--mono)"
+                    id="ls-zeros"
+                    >—</span
+                  >
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 13px;
+                  "
+                >
+                  <span style="color: var(--text2)">Ratio (1s)</span
+                  ><span
+                    style="font-weight: 600; font-family: var(--mono)"
+                    id="ls-ratio"
+                    >—</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="explain-box"
+              id="explain-box"
+              style="margin-top: 16px"
+            ></div>
+
+            <div
+              id="detect-disclaimer"
+              style="
+                margin-bottom: 14px;
+                padding: 12px 16px;
+                border-radius: 12px;
+                background: rgba(59, 130, 246, 0.1);
+                color: #60a5fa;
+                border: 1px solid rgba(59, 130, 246, 0.25);
+                font-size: 13px;
+                line-height: 1.5;
+              "
+            >
+              ℹ️ This analysis is based on statistical LSB patterns. Results
+              indicate probability, not absolute proof. Very small hidden
+              payloads or advanced techniques may not be detected.
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        StegoScan &nbsp;·&nbsp; LSB Steganography &nbsp;·&nbsp; Built with
+        Python, Flask &amp; NumPy &nbsp;·&nbsp; Chi-Square Detection
+      </footer>
+    </div>
+
+    <div id="toast"></div>
+
+    <!-- Scripts (split by feature — see /js). Order matters: background.js
+         declares shared state (selectedPayloadMB) used by ui.js/embed.js -->
+    <script src="{{ url_for('static', filename='js/background.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/embed.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/extract.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/detect.js') }}"></script>
+  </body>
+</html>
