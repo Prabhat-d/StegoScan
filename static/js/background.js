@@ -8,7 +8,8 @@ const canvas = document.getElementById("bg-canvas");
 const ctx = canvas.getContext("2d");
 let W,
   H,
-  particles = [];
+  particles = [],
+  orbits = [];
 
 function resize() {
   W = canvas.width = window.innerWidth;
@@ -24,14 +25,69 @@ function initParticles() {
       y: Math.random() * H,
       vx: (Math.random() - 0.5) * 0.3,
       vy: (Math.random() - 0.5) * 0.3,
-      r: Math.random() * 1.5 + 0.5,
-      a: Math.random() * 0.5 + 0.1,
+      r: Math.random() * 2 + 0.8,
+      a: Math.random() * 0.5 + 0.35,
+    });
+  }
+
+  // glowing orbit circles
+
+  orbits = [];
+
+  for (let i = 0; i < 5; i++) {
+    orbits.push({
+      x: Math.random() * W,
+
+      y: Math.random() * H,
+
+      radius: Math.random() * 80 + 80,
+
+      angle: Math.random() * Math.PI * 2,
+
+      speed: 0.002 + Math.random() * 0.002,
     });
   }
 }
 
 function drawParticles() {
   ctx.clearRect(0, 0, W, H);
+
+  // draw orbit systems
+
+  for (let o of orbits) {
+    o.angle += o.speed;
+
+    ctx.beginPath();
+
+    ctx.arc(o.x, o.y, o.radius, 0, Math.PI * 2);
+
+    ctx.strokeStyle = "rgba(157,127,212,0.15)";
+
+    ctx.lineWidth = 1;
+
+    ctx.stroke();
+
+    // orbiting star
+
+    const px = o.x + Math.cos(o.angle) * o.radius;
+
+    const py = o.y + Math.sin(o.angle) * o.radius;
+
+    ctx.beginPath();
+
+    ctx.arc(px, py, 3, 0, Math.PI * 2);
+
+    ctx.fillStyle = "rgba(0,229,160,0.8)";
+
+    ctx.shadowBlur = 15;
+
+    ctx.shadowColor = "rgba(0,229,160,1)";
+
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+  }
+
   for (let p of particles) {
     p.x += p.vx;
     p.y += p.vy;
@@ -40,7 +96,9 @@ function drawParticles() {
 
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(123,94,167,${p.a})`;
+    const glow = p.a + Math.sin(Date.now() * 0.003 + p.x) * 0.2;
+
+    ctx.fillStyle = `rgba(157,127,212,${glow})`;
     ctx.fill();
   }
 
@@ -53,8 +111,8 @@ function drawParticles() {
         ctx.beginPath();
         ctx.moveTo(particles[i].x, particles[i].y);
         ctx.lineTo(particles[j].x, particles[j].y);
-        ctx.strokeStyle = `rgba(123,94,167,${0.15 * (1 - d / 120)})`;
-        ctx.lineWidth = 0.5;
+        ctx.strokeStyle = `rgba(157,127,212,${0.35 * (1 - d / 120)})`;
+        ctx.lineWidth = 0.8;
         ctx.stroke();
       }
     }
