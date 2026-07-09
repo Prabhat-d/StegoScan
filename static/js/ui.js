@@ -19,6 +19,17 @@ function switchTab(name, btn) {
 function previewImage(input, id) {
   const file = input.files[0];
 
+  if(file.size > 25 * 1024 * 1024){
+
+    showToast(
+      "Image size must be below 25 MB"
+    );
+
+    input.value = "";
+
+    return;
+}
+
   if (file && !file.type.startsWith("image/")) {
     showToast("Please select a valid image file");
 

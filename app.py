@@ -9,11 +9,20 @@ from flask import Flask, request, jsonify, send_file, render_template
 from PIL import Image
 from PIL import ImageOps
 from scipy.stats import chisquare
+from werkzeug.exceptions import RequestEntityTooLarge
 
 HEADER_SIZE = 32
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_large_file(e):
+
+    return jsonify({
+        "error":
+        "The selected file is too large. Maximum upload size is 25 MB."
+    }), 413
 
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
