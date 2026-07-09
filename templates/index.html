@@ -34,6 +34,11 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/misc.css') }}"
     />
+    <link
+      rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='images/logo.png') }}"
+    />
   </head>
   <body>
     <canvas id="bg-canvas"></canvas>
@@ -41,9 +46,15 @@
     <div class="wrap">
       <header>
         <div class="brand">
-          <div class="brand-icon">SS</div>
+          <img
+src="{{ url_for('static', filename='images/logo.png') }}"
+alt="StegoScan"
+class="nav-logo"
+>
           <div>
-            <div class="brand-name">StegoScan</div>
+            <div class="brand-name">
+    StegoScan
+</div>
             <div class="brand-tag">LSB Steganography Detection System</div>
           </div>
         </div>

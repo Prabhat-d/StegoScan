@@ -5,7 +5,7 @@
 /* ── HEADER ── */
 header {
   padding: 0 48px;
-  height: 68px;
+  height: 78px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -52,8 +52,8 @@ header {
 }
 
 .brand-name {
-  font-size: 17px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
   letter-spacing: -0.5px;
 }
 .brand-tag {
@@ -61,6 +61,56 @@ header {
   color: var(--text3);
   font-family: var(--mono);
   margin-top: 1px;
+}
+
+.nav-logo {
+
+  width: 64px;
+
+  height: 64px;
+
+  object-fit: contain;
+
+
+  transform: scale(1.35);
+
+
+  filter:
+    drop-shadow(
+      0 0 12px rgba(0,229,160,.8)
+    )
+    drop-shadow(
+      0 0 22px rgba(0,180,255,.45)
+    );
+
+
+  transition:
+    transform .3s ease,
+    filter .3s ease;
+
+}
+
+
+.nav-logo:hover {
+
+  transform:
+    scale(1.45)
+    rotate(-3deg);
+
+}
+
+@media(max-width:600px){
+
+
+.main-logo{
+
+    width:120px;
+
+    height:120px;
+
+}
+
+
 }
 
 .header-badge {
