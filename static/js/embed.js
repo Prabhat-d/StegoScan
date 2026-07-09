@@ -89,6 +89,9 @@ async function runEmbed() {
 
     stegoB64 = data.stego;
 
+    document.getElementById("embed-orig").src =
+    URL.createObjectURL(coverImage);
+
     document.getElementById("embed-stego").src =
       "data:image/png;base64," + data.stego;
 
