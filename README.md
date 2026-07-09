@@ -149,7 +149,7 @@ StegoScan/
 Clone the repository:
 
 ```bash
-git clone YOUR_REPOSITORY_LINK
+git clone https://github.com/Prabhat-d/StegoScan.git
 ```
 
 Move into project folder:
