@@ -13,6 +13,7 @@ from scipy.stats import chisquare
 HEADER_SIZE = 32
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024
 
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -241,10 +242,9 @@ def embed():
         stego_img = Image.fromarray(stego_arr.astype(np.uint8))
 
         stego_b64 = img_to_base64(stego_img)
-        orig_b64 = img_to_base64(img)
+        
 
         return jsonify({
-        'original': orig_b64,
         'stego': stego_b64,
         'bits_used': len(binary_message),
         'capacity': arr.size,
