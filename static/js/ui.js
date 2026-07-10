@@ -298,3 +298,30 @@ document.querySelectorAll(".dropzone").forEach((dz) => {
     warn.style.display = e.target.value ? "block" : "none";
   });
 })();
+
+function updateClock(){
+
+    const clock =
+    document.getElementById("live-clock");
+
+
+    if(!clock) return;
+
+
+    const now = new Date();
+
+
+    clock.textContent =
+    now.toLocaleTimeString(
+        "en-IN",
+        {
+            hour12:false
+        }
+    );
+
+}
+
+
+setInterval(updateClock,1000);
+
+updateClock();

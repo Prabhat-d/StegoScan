@@ -17,6 +17,46 @@ header {
   z-index: 100;
 }
 
+.header-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 16px;
+
+}
+
+
+.live-clock {
+
+    font-family: var(--mono);
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    color: var(--purple-light);
+
+
+    padding: 8px 14px;
+
+    border-radius: 20px;
+
+
+    background:
+    rgba(255,255,255,.05);
+
+
+    border:
+    1px solid rgba(157,127,212,.25);
+
+
+    box-shadow:
+    0 0 15px rgba(157,127,212,.15);
+
+}
+
 .brand {
   display: flex;
   align-items: center;
