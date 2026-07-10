@@ -1,4 +1,4 @@
-# 🛡️ StegoScan - LSB Image Steganography & Detection System
+# 🛡️ StegoScan - Image Steganography System
 
 StegoScan is a cybersecurity-based web application that allows users to hide, extract, and detect hidden information inside digital images using Least Significant Bit (LSB) steganography techniques.
 
