@@ -1,6 +1,6 @@
 // ============================================
 // UI HELPERS — tabs, image preview, errors,
-// counter animation, dropzone drag, misc toggles
+// comparison slider, dropzone drag, misc toggles
 // ============================================
 
 // ── TABS ──
@@ -15,32 +15,25 @@ function switchTab(name, btn) {
   document.getElementById("panel-" + name).classList.add("active");
 }
 
-// ── IMAGE PREVIEW ──
+// ── IMAGE PREVIEW & METADATA ──
 function previewImage(input, id) {
   const file = input.files[0];
 
-  if(file.size > 25 * 1024 * 1024){
-
-    showToast(
-      "Image size must be below 25 MB"
-    );
-
-    input.value = "";
-
-    return;
-}
-
-  if (file && !file.type.startsWith("image/")) {
-    showToast("Please select a valid image file");
-
-    input.value = "";
-
-    return;
-  }
-  if (file) {
-    showToast(`✓ ${file.name} selected`);
-  }
   if (!file) return;
+
+  if (file.size > 25 * 1024 * 1024) {
+    showToast("Image size must be below 25 MB");
+    input.value = "";
+    return;
+  }
+
+  if (!file.type.startsWith("image/")) {
+    showToast("Please select a valid image file");
+    input.value = "";
+    return;
+  }
+
+  showToast(`✓ ${file.name} selected (${(file.size / (1024 * 1024)).toFixed(2)} MB)`);
 
   const el = document.getElementById(id);
   const wrap = document.getElementById(id + "-wrap");
@@ -55,9 +48,7 @@ function previewImage(input, id) {
 
 function copyExtractedText() {
   const text = document.getElementById("extract-msg").textContent;
-
   navigator.clipboard.writeText(text);
-
   showToast("Copied to clipboard");
 }
 
@@ -86,7 +77,6 @@ function resetResults() {
   });
 
   const success = document.getElementById("embed-success");
-
   if (success) {
     success.style.display = "none";
   }
@@ -94,50 +84,29 @@ function resetResults() {
 
 function resetEmbedForm() {
   resetResults();
-
-  // message
   document.getElementById("embed-msg").value = "";
-
-  // password
   document.getElementById("embed-password").value = "";
-
-  // hidden files
   document.getElementById("secret-file").value = "";
-
   document.getElementById("secret-image").value = "";
 
-  // hide file info
   document.getElementById("hidden-file-info").style.display = "none";
-
   document.getElementById("hidden-image-info").style.display = "none";
-
   document.getElementById("hidden-image-wrap").style.display = "none";
 
-  // reset payload size
   selectedPayloadMB = 0;
-
-  // reset profile backend value
   document.getElementById("embedding-profile").value = "standard";
-
-  // reset profile text
   document.getElementById("profile-selected").textContent = "Standard";
-
   document.getElementById("profile-description").textContent =
     "Standard profile embeds only the original payload for minimal image modification.";
-
-  // hide processing/success message
   document.getElementById("embed-success").style.display = "none";
 }
 
 function toggleHideType() {
   const type = document.getElementById("hide-type").value;
-
   document.getElementById("hide-text-block").style.display =
     type === "text" ? "block" : "none";
-
   document.getElementById("hide-file-block").style.display =
     type === "file" ? "block" : "none";
-
   document.getElementById("hide-image-block").style.display =
     type === "image" ? "block" : "none";
 }
@@ -164,46 +133,27 @@ function selectHideType(value, label) {
 
 function showHiddenFile(input) {
   const file = input.files[0];
-
   const box = document.getElementById("hidden-file-info");
-
   if (!file) {
     box.style.display = "none";
     return;
   }
-
   const mb = (file.size * 1.35) / (1024 * 1024);
-
   selectedPayloadMB = mb;
-
   box.style.display = "block";
-
-  box.innerHTML = `
-    📄 ${file.name}<br>
-    Size: ${mb.toFixed(2)} MB
-    `;
+  box.innerHTML = `📄 ${file.name}<br>Size: ${mb.toFixed(2)} MB`;
 }
 
 function showHiddenImage(input) {
   const file = input.files[0];
-
   if (!file) return;
-
   const mb = (file.size * 1.35) / (1024 * 1024);
-
   selectedPayloadMB = mb;
-
   document.getElementById("hidden-image-info").style.display = "block";
-
-  document.getElementById("hidden-image-info").innerHTML = `
-    🖼️ ${file.name}<br>
-    Size: ${mb.toFixed(2)} MB
-    `;
+  document.getElementById("hidden-image-info").innerHTML = `🖼️ ${file.name}<br>Size: ${mb.toFixed(2)} MB`;
 
   const preview = document.getElementById("hidden-image-preview");
-
   preview.src = URL.createObjectURL(file);
-
   document.getElementById("hidden-image-wrap").style.display = "block";
 }
 
@@ -213,34 +163,27 @@ function toggleProfileSelect() {
 
 function selectProfile(value, label) {
   document.getElementById("embedding-profile").value = value;
-
   document.getElementById("profile-selected").textContent = label;
 
-  document
-    .querySelectorAll("#profile-menu .custom-select-option")
-    .forEach((option) => {
-      option.classList.remove("active");
-
-      if (option.dataset.value === value) option.classList.add("active");
-    });
+  document.querySelectorAll("#profile-menu .custom-select-option").forEach((option) => {
+    option.classList.remove("active");
+    if (option.dataset.value === value) option.classList.add("active");
+  });
 
   const desc = document.getElementById("profile-description");
-
   if (value === "standard") {
     desc.textContent =
-      "Standard profile embeds only the original payload for minimal image modification.";
+      "Standard profile embeds only the original payload sequentially for minimal image modification.";
   } else {
     desc.textContent =
-      "Robust profile increases embedding density by utilizing additional image capacity while preserving extraction accuracy.";
+      "Robust profile uses Keyed PRNG Bit Scattering to distribute payload bits across the whole image, evading spatial region detectors.";
   }
-
   document.getElementById("profile-select").classList.remove("open");
 }
 
 function updatePickedFile(input, pickerId, textId, defaultText) {
   const picker = document.getElementById(pickerId);
   const text = document.getElementById(textId);
-
   if (input.files && input.files[0]) {
     picker.classList.add("active");
     text.textContent = input.files[0].name;
@@ -299,29 +242,78 @@ document.querySelectorAll(".dropzone").forEach((dz) => {
   });
 })();
 
-function updateClock(){
+// ── INTERACTIVE STEGO COMPARISON SLIDER ──
+function setupComparisonSlider() {
+  const container = document.getElementById("stego-slider-container");
+  const overlay = document.getElementById("stego-slider-overlay");
+  const handle = document.getElementById("stego-slider-handle");
 
-    const clock =
-    document.getElementById("live-clock");
+  if (!container || !overlay || !handle) return;
 
+  let isDragging = false;
 
-    if(!clock) return;
+  const moveSlider = (clientX) => {
+    const rect = container.getBoundingClientRect();
+    let x = clientX - rect.left;
+    x = Math.max(0, Math.min(x, rect.width));
+    const pct = (x / rect.width) * 100;
+    overlay.style.width = pct + "%";
+    handle.style.left = pct + "%";
+  };
 
+  handle.addEventListener("mousedown", () => (isDragging = true));
+  window.addEventListener("mouseup", () => (isDragging = false));
+  window.addEventListener("mousemove", (e) => {
+    if (isDragging) moveSlider(e.clientX);
+  });
 
-    const now = new Date();
-
-
-    clock.textContent =
-    now.toLocaleTimeString(
-        "en-IN",
-        {
-            hour12:false
-        }
-    );
-
+  handle.addEventListener("touchstart", () => (isDragging = true));
+  window.addEventListener("touchend", () => (isDragging = false));
+  window.addEventListener("touchmove", (e) => {
+    if (isDragging && e.touches[0]) moveSlider(e.touches[0].clientX);
+  });
 }
 
+function updateClock() {
+  const clock = document.getElementById("live-clock");
+  if (!clock) return;
+  const now = new Date();
+  clock.textContent = now.toLocaleTimeString("en-IN", { hour12: false });
+}
 
-setInterval(updateClock,1000);
-
+setInterval(updateClock, 1000);
 updateClock();
+document.addEventListener("DOMContentLoaded", setupComparisonSlider);
+
+// ── MODAL HANDLERS ──
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.remove("active");
+    document.body.style.overflow = "";
+  }
+}
+
+function closeModalOnOverlay(e, modalId) {
+  if (e.target.classList.contains("modal-overlay")) {
+    closeModal(modalId);
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    document.querySelectorAll(".modal-overlay.active").forEach((m) => {
+      m.classList.remove("active");
+    });
+    document.body.style.overflow = "";
+  }
+});
+

@@ -8,31 +8,31 @@
     <!-- Stylesheets (split by section — see /css) -->
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/base.css') }}"
+      href="{{ url_for('static', filename='css/base.css') }}?v=2.1"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/layout.css') }}"
+      href="{{ url_for('static', filename='css/layout.css') }}?v=2.1"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/header-hero.css') }}"
+      href="{{ url_for('static', filename='css/header-hero.css') }}?v=2.1"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/tabs.css') }}"
+      href="{{ url_for('static', filename='css/tabs.css') }}?v=2.1"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/forms.css') }}"
+      href="{{ url_for('static', filename='css/forms.css') }}?v=2.1"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/results.css') }}"
+      href="{{ url_for('static', filename='css/results.css') }}?v=2.1"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/misc.css') }}"
+      href="{{ url_for('static', filename='css/misc.css') }}?v=2.1"
     />
     <link
       rel="icon"
@@ -88,6 +88,26 @@ class="nav-logo"
           <p class="hero-sub">
             Hide • Extract • Detect hidden data inside images
           </p>
+
+          <!-- User-Friendly Status Bar -->
+          <div class="user-status-bar">
+            <div class="status-pill green">
+              <span class="pill-dot"></span>
+              <span class="pill-text"><strong>Engine Status:</strong> Online & Ready</span>
+            </div>
+            <div class="status-pill blue">
+              <span class="pill-icon">🛡️</span>
+              <span class="pill-text"><strong>Security Guard:</strong> In-Memory RAM Processing (Zero-Disk Storage)</span>
+            </div>
+            <div class="status-pill purple">
+              <span class="pill-icon">🖼️</span>
+              <span class="pill-text"><strong>Supported Formats:</strong> PNG, JPG, BMP</span>
+            </div>
+            <div class="status-pill amber">
+              <span class="pill-icon">⚡</span>
+              <span class="pill-text"><strong>Max File Capacity:</strong> Up to 25 MB</span>
+            </div>
+          </div>
         </div>
 
         <div class="tab-bar">
@@ -461,6 +481,24 @@ class="nav-logo"
                   <span></span>Stego image (message hidden inside)
                 </div>
                 <img id="embed-stego" />
+              </div>
+            </div>
+
+            <!-- INTERACTIVE COMPARISON SLIDER -->
+            <div style="margin-top: 20px;">
+              <div class="img-slot-label">
+                <span></span>Interactive Before / After Comparison Slider (Drag handle to inspect)
+              </div>
+              <div class="stego-slider-wrap" id="stego-slider-container">
+                <span class="stego-slider-label left">Original Image</span>
+                <span class="stego-slider-label right">Stego Image</span>
+                <img id="stego-slider-stego" class="stego-slider-img" />
+                <div class="stego-slider-overlay" id="stego-slider-overlay">
+                  <img id="stego-slider-orig" class="stego-slider-img" />
+                </div>
+                <div class="stego-slider-handle" id="stego-slider-handle">
+                  <div class="stego-slider-handle-btn">↔</div>
+                </div>
               </div>
             </div>
             <div class="capacity-wrap">
@@ -1092,7 +1130,7 @@ class="nav-logo"
             <div
               style="
                 display: grid;
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(4, 1fr);
                 gap: 12px;
                 margin-bottom: 14px;
               "
@@ -1141,7 +1179,7 @@ class="nav-logo"
                 <div
                   id="sv-balance"
                   style="
-                    font-size: 22px;
+                    font-size: 20px;
                     font-weight: 700;
                     font-family: var(--mono);
                   "
@@ -1149,11 +1187,12 @@ class="nav-logo"
                   —
                 </div>
                 <div
-                  style="font-size: 11px; color: var(--text3); margin-top: 4px"
+                  style="font-size: 10px; color: var(--text3); margin-top: 4px"
                 >
                   ideal natural: ~50%
                 </div>
               </div>
+
               <div
                 style="
                   background: var(--bg2);
@@ -1198,7 +1237,7 @@ class="nav-logo"
                 <div
                   id="sv-entropy"
                   style="
-                    font-size: 22px;
+                    font-size: 20px;
                     font-weight: 700;
                     font-family: var(--mono);
                   "
@@ -1206,11 +1245,71 @@ class="nav-logo"
                   —
                 </div>
                 <div
-                  style="font-size: 11px; color: var(--text3); margin-top: 4px"
+                  style="font-size: 10px; color: var(--text3); margin-top: 4px"
                 >
                   max = 1.0 (random)
                 </div>
               </div>
+
+              <div
+                style="
+                  background: var(--bg2);
+                  border: 1px solid var(--border);
+                  border-radius: 12px;
+                  padding: 16px;
+                  position: relative;
+                  overflow: hidden;
+                "
+              >
+                <div
+                  style="
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    height: 2px;
+                    background: linear-gradient(
+                      90deg,
+                      var(--green),
+                      var(--accent2)
+                    );
+                    transform: scaleX(0);
+                    transform-origin: left;
+                    transition: transform 0.6s 0.7s ease;
+                  "
+                  class="metric-bar"
+                ></div>
+                <div
+                  style="
+                    font-size: 10px;
+                    font-weight: 700;
+                    letter-spacing: 1.2px;
+                    text-transform: uppercase;
+                    color: var(--text3);
+                    font-family: var(--mono);
+                    margin-bottom: 10px;
+                  "
+                >
+                  RS Steganalysis
+                </div>
+                <div
+                  id="sv-rs-ratio"
+                  style="
+                    font-size: 20px;
+                    font-weight: 700;
+                    font-family: var(--mono);
+                  "
+                >
+                  —
+                </div>
+                <div
+                  id="sv-rs-kb"
+                  style="font-size: 10px; color: var(--text3); margin-top: 4px"
+                >
+                  est. payload size
+                </div>
+              </div>
+
               <div
                 style="
                   background: var(--bg2);
@@ -1235,7 +1334,7 @@ class="nav-logo"
                     );
                     transform: scaleX(0);
                     transform-origin: left;
-                    transition: transform 0.6s 0.7s ease;
+                    transition: transform 0.6s 0.9s ease;
                   "
                   class="metric-bar"
                 ></div>
@@ -1255,7 +1354,7 @@ class="nav-logo"
                 <div
                   id="sv-chip"
                   style="
-                    font-size: 22px;
+                    font-size: 20px;
                     font-weight: 700;
                     font-family: var(--mono);
                   "
@@ -1263,7 +1362,7 @@ class="nav-logo"
                   —
                 </div>
                 <div
-                  style="font-size: 11px; color: var(--text3); margin-top: 4px"
+                  style="font-size: 10px; color: var(--text3); margin-top: 4px"
                 >
                   p &lt; 0.05 = suspicious
                 </div>
@@ -1288,17 +1387,11 @@ class="nav-logo"
                   text-align: center;
                 "
               >
-                <div
-                  style="
-                    font-size: 10px;
-                    color: var(--text3);
-                    font-family: var(--mono);
-                    letter-spacing: 1px;
-                    text-transform: uppercase;
-                    margin-bottom: 10px;
-                  "
-                >
-                  Red channel LSB plane
+                <div class="bitplane-tabs">
+                  <button class="bitplane-tab-btn active" type="button" onclick="switchBitplane('red', this)">Red</button>
+                  <button class="bitplane-tab-btn" type="button" onclick="switchBitplane('green', this)">Green</button>
+                  <button class="bitplane-tab-btn" type="button" onclick="switchBitplane('blue', this)">Blue</button>
+                  <button class="bitplane-tab-btn" type="button" onclick="switchBitplane('combined', this)">Combined</button>
                 </div>
                 <img
                   id="lsb-img"
@@ -1409,24 +1502,166 @@ class="nav-logo"
         </div>
       </main>
 
-      <footer>
-        StegoScan &nbsp;·&nbsp; LSB Steganography &nbsp;·&nbsp; Built with
-        Python, Flask &amp; NumPy &nbsp;·&nbsp; Chi-Square Detection
+      <footer class="site-footer">
+        <div class="footer-container">
+          <!-- Col 1: Brand & Developer Profile -->
+          <div class="footer-col brand-col">
+            <div class="footer-brand">
+              <img
+                src="{{ url_for('static', filename='images/logo.png') }}"
+                alt="StegoScan"
+                class="footer-logo"
+              />
+              <div>
+                <div class="footer-brand-name">StegoScan 2.0</div>
+                <div class="footer-brand-sub">LSB Steganography & Forensic Suite</div>
+              </div>
+            </div>
+            <p class="footer-desc">
+              Advanced in-memory steganography suite. Detect, embed, and extract hidden payload data with zero local disk footprints.
+            </p>
+            <div class="developer-badge">
+              <span>👨‍💻 Developer:</span>
+              <a href="https://prabhatjhanji.netlify.app" target="_blank" class="dev-link">Prabhat Jhanji ↗</a>
+            </div>
+          </div>
+
+          <!-- Col 2: Modules -->
+          <div class="footer-col">
+            <h4 class="footer-heading">Platform Modules</h4>
+            <ul class="footer-links">
+              <li><a href="#" onclick="switchTab('embed', this); window.scrollTo({top: 300, behavior:'smooth'}); return false;">🔒 Embed Secret Data</a></li>
+              <li><a href="#" onclick="switchTab('extract', this); window.scrollTo({top: 300, behavior:'smooth'}); return false;">🔍 Extract Hidden Payload</a></li>
+              <li><a href="#" onclick="switchTab('detect', this); window.scrollTo({top: 300, behavior:'smooth'}); return false;">📊 Forensic LSB Detector</a></li>
+              <li><a href="https://www.npmjs.com/package/staminigit" target="_blank">📦 Staminigit CLI (npm) ↗</a></li>
+            </ul>
+          </div>
+
+          <!-- Col 3: Documentation & Research -->
+          <div class="footer-col">
+            <h4 class="footer-heading">Documentation</h4>
+            <ul class="footer-links">
+              <li><a href="#" onclick="openModal('guide-modal'); return false;">📘 Steganography User Guide</a></li>
+              <li><a href="#" onclick="openModal('math-modal'); return false;">🔬 RS Steganalysis Math</a></li>
+              <li><a href="#" onclick="openModal('security-modal'); return false;">🛡️ Zero-Disk Security Policy</a></li>
+              <li><a href="https://github.com/Prabhat-d" target="_blank">💻 Source Code (GitHub) ↗</a></li>
+            </ul>
+          </div>
+
+          <!-- Col 4: Legal & Contact -->
+          <div class="footer-col">
+            <h4 class="footer-heading">Legal & Contact</h4>
+            <ul class="footer-links">
+              <li><a href="mailto:prabhatjhanji@gmail.com">✉️ Contact Developer</a></li>
+              <li><a href="https://www.linkedin.com/in/prabhat-jhanji-0a4057331" target="_blank">🔗 LinkedIn Profile ↗</a></li>
+              <li><a href="#" onclick="openModal('privacy-modal'); return false;">📜 Privacy Policy</a></li>
+              <li><a href="#" onclick="openModal('terms-modal'); return false;">⚖️ Terms of Service</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <div class="footer-copyright">
+            © 2026 StegoScan. Engineered by <strong>Prabhat Jhanji</strong>. Built with Python, Flask, NumPy & SciPy.
+          </div>
+          <div class="footer-socials">
+            <a href="https://github.com/Prabhat-d" target="_blank">GitHub</a>
+            <a href="https://www.linkedin.com/in/prabhat-jhanji-0a4057331" target="_blank">LinkedIn</a>
+            <a href="https://prabhatjhanji.netlify.app" target="_blank">Portfolio</a>
+            <a href="mailto:prabhatjhanji@gmail.com">Email</a>
+          </div>
+        </div>
       </footer>
+    </div>
+
+    <!-- MODAL DIALOGS -->
+    <!-- 1. Guide Modal -->
+    <div id="guide-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'guide-modal')">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">📘 StegoScan User Guide</div>
+          <button class="modal-close" onclick="closeModal('guide-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+          <h4>1. Embedding Secret Data</h4>
+          <p>Select an uncompressed PNG or BMP image. Choose your payload type (Text, File, or Image). Option to set a password using PBKDF2-HMAC-SHA256 encryption.</p>
+          <h4>2. Extracting Hidden Data</h4>
+          <p>Upload a stego image created by StegoScan. If password protected, enter the secret password to decrypt and recover the payload.</p>
+          <h4>3. Detecting Steganography</h4>
+          <p>Upload any image to run RS Steganalysis (Fridrich et al.), Chi-Square PoV, LSB Entropy, and Regional LSB Difference analysis.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Math Modal -->
+    <div id="math-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'math-modal')">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">🔬 RS Steganalysis & Detection Math</div>
+          <button class="modal-close" onclick="closeModal('math-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+          <h4>RS Steganalysis (Fridrich et al.)</h4>
+          <p>Measures variation in pixel groups under positive mask M=[0,1,1,0] and negative mask -M=[0,-1,-1,0]. Solves quadratic equations to estimate modified LSB percentage.</p>
+          <h4>Chi-Square Pair-of-Values (PoV)</h4>
+          <p>Evaluates equal distribution across adjacent pixel luminance pairs (2k, 2k+1) resulting from LSB flipping.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Security Modal -->
+    <div id="security-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'security-modal')">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">🛡️ Zero-Disk RAM Processing Policy</div>
+          <button class="modal-close" onclick="closeModal('security-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+          <h4>Zero-Disk Storage Architecture</h4>
+          <p>All image manipulation, LSB bitplane calculations, and payload extractions are performed strictly in system volatile RAM (using Python <code>BytesIO</code> buffers).</p>
+          <p>Uploaded images are never saved to disk or database tables, ensuring 100% privacy and security.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Privacy Modal -->
+    <div id="privacy-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'privacy-modal')">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">📜 Privacy Policy</div>
+          <button class="modal-close" onclick="closeModal('privacy-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+          <h4>Data Privacy Commitment</h4>
+          <p>StegoScan respects your privacy. We do not store, log, track, or share any images, messages, passwords, or files processed through this platform.</p>
+          <p>All processing is temporary and erased immediately upon HTTP request completion.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Terms Modal -->
+    <div id="terms-modal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'terms-modal')">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">⚖️ Terms of Service & Security Usage</div>
+          <button class="modal-close" onclick="closeModal('terms-modal')">✕</button>
+        </div>
+        <div class="modal-body">
+          <h4>Educational & Forensic Purpose</h4>
+          <p>StegoScan is an open-source cybersecurity and steganography analysis platform developed by <strong>Prabhat Jhanji</strong> for educational and forensic research purposes.</p>
+          <p>Users are responsible for ensuring authorized use of secret data and compliance with local laws.</p>
+        </div>
+      </div>
     </div>
 
     <div id="toast"></div>
 
     <!-- Scripts (split by feature — see /js). Order matters: background.js
          declares shared state (selectedPayloadMB) used by ui.js/embed.js -->
-    <script src="{{ url_for('static', filename='js/background.js') }}"></script>
-
-    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
-
-    <script src="{{ url_for('static', filename='js/embed.js') }}"></script>
-
-    <script src="{{ url_for('static', filename='js/extract.js') }}"></script>
-
-    <script src="{{ url_for('static', filename='js/detect.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/background.js') }}?v=2.1"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}?v=2.1"></script>
+    <script src="{{ url_for('static', filename='js/embed.js') }}?v=2.1"></script>
+    <script src="{{ url_for('static', filename='js/extract.js') }}?v=2.1"></script>
+    <script src="{{ url_for('static', filename='js/detect.js') }}?v=2.1"></script>
   </body>
 </html>

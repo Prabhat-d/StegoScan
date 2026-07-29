@@ -2,7 +2,19 @@
 // DETECT — LSB steganography detection & report rendering
 // ============================================
 
-// ── DETECT ──
+let currentBitplanes = null;
+
+function switchBitplane(channel, btn) {
+  if (!currentBitplanes) return;
+  document.querySelectorAll(".bitplane-tab-btn").forEach((b) => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+
+  const lsbImg = document.getElementById("lsb-img");
+  if (channel in currentBitplanes) {
+    lsbImg.src = "data:image/png;base64," + currentBitplanes[channel];
+  }
+}
+
 async function runDetect() {
   const file = document.getElementById("detect-file").files[0];
   hideErr("detect-err");
@@ -14,8 +26,7 @@ async function runDetect() {
   const btn = document.getElementById("detect-btn");
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML =
-      '<div class="spinner"></div><span>Analyzing...</span>';
+    btn.innerHTML = '<div class="spinner"></div><span>Analyzing...</span>';
   }
 
   const form = new FormData();
@@ -30,7 +41,6 @@ async function runDetect() {
     }
 
     const warningBox = document.getElementById("detect-warning");
-
     if (data.warning) {
       warningBox.style.display = "block";
       warningBox.textContent = "⚠ " + data.warning;
@@ -45,28 +55,30 @@ async function runDetect() {
     const icon = document.getElementById("verdict-icon");
     const title = document.getElementById("verdict-title");
     const sub = document.getElementById("verdict-sub");
+    const sigType = data.sig_type || "StegoScan Payload";
 
     if (data.score >= 60) {
       banner.style.cssText +=
         "background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3);color:var(--red);";
       icon.textContent = "🚨";
       title.textContent = "Strong Indicators of Hidden Data";
-      sub.textContent =
-        "Multiple statistical patterns suggest possible hidden data. High confidence of steganographic modification.";
+      sub.textContent = data.signature_detected
+        ? `Verified ${sigType} header identified in image LSB plane.`
+        : "Multiple statistical signals (RS Steganalysis, Chi-Square, Entropy) confirm high likelihood of hidden steganographic payload.";
     } else if (data.score >= 35) {
       banner.style.cssText +=
         "background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3);color:var(--amber);";
       icon.textContent = "⚠️";
       title.textContent = "Possible Hidden Data";
       sub.textContent =
-        "Some statistical indicators suggest possible modification. Not conclusive.";
+        "Some statistical anomalies detected. The image exhibits mild LSB distribution shifts.";
     } else {
       banner.style.cssText +=
         "background:rgba(0,229,160,0.08);border-color:rgba(0,229,160,0.3);color:var(--green);";
       icon.textContent = "✅";
       title.textContent = "Image Appears Clean";
       sub.textContent =
-        "No significant LSB statistical anomalies were detected.";
+        "No significant LSB statistical anomalies or RS steganography signals detected.";
     }
 
     // ── RISK SCORE CIRCLE ──
@@ -90,8 +102,7 @@ async function runDetect() {
           ? "Medium Risk"
           : "Low Risk";
     setTimeout(() => {
-      ring.style.strokeDashoffset =
-        circumference - (score / 100) * circumference;
+      ring.style.strokeDashoffset = circumference - (score / 100) * circumference;
       animateCount(scoreNum, score, 0, 1200);
     }, 200);
 
@@ -109,89 +120,97 @@ async function runDetect() {
       });
     } else {
       reasonsList.innerHTML =
-        '<span style="color:var(--text3);">No anomalies detected</span>';
+        '<span style="color:var(--text3);">No statistical anomalies detected</span>';
     }
 
     // ── REGION ANALYSIS ──
     setTimeout(() => {
-      document.getElementById("region-start").textContent =
-        data.region_start.toFixed(4);
-      document.getElementById("region-end").textContent =
-        data.region_end.toFixed(4);
-      document.getElementById("region-diff").textContent =
-        data.region_difference.toFixed(4);
-      document.getElementById("region-diff-pct").textContent =
-        data.region_difference.toFixed(4);
+      document.getElementById("region-start").textContent = data.region_start.toFixed(4);
+      document.getElementById("region-end").textContent = data.region_end.toFixed(4);
+      document.getElementById("region-diff").textContent = data.region_difference.toFixed(4);
+      document.getElementById("region-diff-pct").textContent = data.region_difference.toFixed(4);
 
       const regionBadge = document.getElementById("region-badge");
       const regionGauge = document.getElementById("region-gauge");
       const diff = data.region_difference;
 
-      if (diff > 0.02) {
+      if (data.signature_detected) {
+        regionBadge.textContent = "⚠ Signature Verified";
+        regionBadge.style.cssText =
+          "background:rgba(239,68,68,0.15);color:var(--red);font-size:10px;font-weight:700;padding:4px 12px;border-radius:12px;font-family:var(--mono);";
+        regionGauge.style.background = "var(--red)";
+        regionGauge.style.width = "100%";
+      } else if (diff > 0.02) {
         regionBadge.textContent = "⚠ Pattern Found";
         regionBadge.style.cssText =
           "background:rgba(239,68,68,0.15);color:var(--red);font-size:10px;font-weight:700;padding:4px 12px;border-radius:12px;font-family:var(--mono);";
         regionGauge.style.background = "var(--red)";
+        regionGauge.style.width = Math.min((diff / 0.04) * 100, 100) + "%";
       } else if (diff > 0.01) {
         regionBadge.textContent = "~ Variation";
         regionBadge.style.cssText =
           "background:rgba(245,158,11,0.15);color:var(--amber);font-size:10px;font-weight:700;padding:4px 12px;border-radius:12px;font-family:var(--mono);";
         regionGauge.style.background = "var(--amber)";
+        regionGauge.style.width = Math.min((diff / 0.04) * 100, 100) + "%";
       } else {
         regionBadge.textContent = "✓ Stable";
         regionBadge.style.cssText =
           "background:rgba(0,229,160,0.15);color:var(--green);font-size:10px;font-weight:700;padding:4px 12px;border-radius:12px;font-family:var(--mono);";
         regionGauge.style.background = "var(--green)";
+        regionGauge.style.width = Math.min((diff / 0.04) * 100, 100) + "%";
       }
-
-      // Scale gauge: 0.04 = 100%
-      const gaugeWidth = Math.min((diff / 0.04) * 100, 100);
-      regionGauge.style.width = gaugeWidth + "%";
     }, 300);
 
     // ── METRIC BARS ANIMATION ──
     setTimeout(() => {
-      document
-        .querySelectorAll(".metric-bar")
-        .forEach((b) => (b.style.transform = "scaleX(1)"));
+      document.querySelectorAll(".metric-bar").forEach((b) => (b.style.transform = "scaleX(1)"));
     }, 400);
 
     // ── SUPPORTING METRICS ──
     setTimeout(() => {
-      document.getElementById("sv-balance").textContent =
-        (data.balance_ratio * 100).toFixed(2) + "%";
-      document.getElementById("sv-entropy").textContent =
-        data.lsb_entropy.toFixed(4);
-      document.getElementById("sv-chip").textContent =
-        data.chi_p < 0.0001 ? "<0.0001" : data.chi_p.toFixed(4);
+      document.getElementById("sv-balance").textContent = (data.balance_ratio * 100).toFixed(2) + "%";
+      document.getElementById("sv-entropy").textContent = data.lsb_entropy.toFixed(4);
+      document.getElementById("sv-chip").textContent = data.chi_p < 0.0001 ? "<0.0001" : data.chi_p.toFixed(4);
+
+      const rsRatioEl = document.getElementById("sv-rs-ratio");
+      const rsKbEl = document.getElementById("sv-rs-kb");
+      if (rsRatioEl) {
+        rsRatioEl.textContent = (data.rs_payload_ratio * 100).toFixed(1) + "%";
+      }
+      if (rsKbEl) {
+        rsKbEl.textContent = `est. ~${data.rs_estimated_kb} KB payload`;
+      }
     }, 450);
 
-    // ── LSB PLANE ──
-    document.getElementById("lsb-img").src =
-      "data:image/png;base64," + data.lsb_plane;
-    document.getElementById("ls-total").textContent =
-      data.total.toLocaleString();
-    document.getElementById("ls-ones").textContent =
-      data.ones.toLocaleString();
-    document.getElementById("ls-zeros").textContent =
-      data.zeros.toLocaleString();
+    // ── LSB BITPLANES ──
+    currentBitplanes = data.bitplanes || { red: data.lsb_plane };
+    document.getElementById("lsb-img").src = "data:image/png;base64," + currentBitplanes.red;
+    
+    document.querySelectorAll(".bitplane-tab-btn").forEach((b, idx) => {
+      if (idx === 0) b.classList.add("active");
+      else b.classList.remove("active");
+    });
+
+    document.getElementById("ls-total").textContent = data.total.toLocaleString();
+    document.getElementById("ls-ones").textContent = data.ones.toLocaleString();
+    document.getElementById("ls-zeros").textContent = data.zeros.toLocaleString();
     const ratioPct = (data.lsb_ratio * 100).toFixed(1);
     document.getElementById("ls-ratio").textContent = ratioPct + "%";
 
-    // ── EXPLAIN ──
+    // ── EXPLANATION ──
     document.getElementById("explain-box").innerHTML = `
-<strong>How to read this result:</strong>
-The verdict is generated using multiple LSB statistical indicators including 
-<strong>regional variation, LSB balance, entropy, and Chi-Square analysis</strong>.
+<strong>Steganalysis Forensic Report:</strong><br>
+The risk assessment combines <strong>Header Signature Verification</strong>, <strong>RS Steganalysis (Fridrich et al.)</strong>, 
+<strong>Chi-Square PoV</strong>, <strong>LSB Entropy</strong>, and <strong>Regional Variation</strong>.
 <br><br>
-
-Region difference: ${data.region_difference.toFixed(4)}<br>
-LSB entropy: ${data.lsb_entropy.toFixed(4)}<br>
-LSB balance: ${ratioPct}%<br>
-Chi-Square p-value: ${data.chi_p < 0.0001 ? "<0.0001" : data.chi_p.toFixed(4)}
-
+• Signature Status: ${data.signature_detected ? "Verified Magic Header Signature (" + sigType + ")" : "No Magic Signature Header"}<br>
+• RS Estimated Payload: ${(data.rs_payload_ratio * 100).toFixed(1)}% of capacity (${data.rs_estimated_kb} KB)<br>
+• Regional Difference: ${data.region_difference.toFixed(4)}<br>
+• LSB Entropy: ${data.lsb_entropy.toFixed(4)}<br>
+• LSB Bit Ratio: ${ratioPct}%<br>
+• Chi-Square p-value: ${data.chi_p < 0.0001 ? "<0.0001" : data.chi_p.toFixed(4)}
 <br><br>
-A single value does not confirm hidden data; the final risk score combines multiple signals.
+<em>Result interpretation: High risk score indicates confirmed presence of steganographic payload data.</em>
 `;
   } catch (e) {
     showErr("detect-err", "Server error. Is Flask running?");
@@ -205,35 +224,24 @@ A single value does not confirm hidden data; the final risk score combines multi
 
 function showImageCapacity(input) {
   const file = input.files[0];
-
   if (!file) return;
 
   const img = new Image();
-
   img.onload = function () {
     const capacityBytes = (img.width * img.height * 3) / 8;
-
     const userCapacity = capacityBytes * 0.7;
-
     const mb = userCapacity / (1024 * 1024);
-
     const box = document.getElementById("capacity-info");
-
     box.style.display = "block";
-
-    box.innerHTML = `ⓘ Estimated hiding capacity: about ${mb.toFixed(2)} MB of data.`;
+    box.innerHTML = `ⓘ <strong>Image Specs:</strong> ${img.width}×${img.height} px | Hiding Capacity: ~${mb.toFixed(2)} MB`;
   };
-
   img.src = URL.createObjectURL(file);
 }
 
 function showToast(message) {
   const toast = document.getElementById("toast");
-
   toast.textContent = message;
-
   toast.classList.add("show");
-
   setTimeout(() => {
     toast.classList.remove("show");
   }, 2000);
