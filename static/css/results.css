@@ -1,6 +1,4 @@
-/* ============================================
-   RESULTS DISPLAY — badges, gauges, stats, comparisons
-   ============================================ */
+/* Results Display & Forensic Gauges */
 
 /* ── RESULT BOX ── */
 .result-box {
@@ -506,3 +504,67 @@
   border-radius: 3px;
   transition: width 1s ease;
 }
+
+/* ── RESPONSIVE MEDIA QUERIES ── */
+.score-confidence-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.supporting-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .supporting-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .result-box {
+    padding: 18px 14px;
+    border-radius: 14px;
+  }
+  .img-compare {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .stego-slider-wrap {
+    height: 220px;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .score-confidence-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .bitplane-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+  .bitplane-tab-btn {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .supporting-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  .stat-value {
+    font-size: 22px;
+  }
+  .stego-slider-wrap {
+    height: 180px;
+  }
+}
+

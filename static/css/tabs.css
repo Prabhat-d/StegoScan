@@ -1,8 +1,5 @@
-/* ============================================
-   TABS & MAIN CONTENT LAYOUT
-   ============================================ */
+/* Main Navigation Tabs & Panel Layout */
 
-/* ── TABS ── */
 .tab-bar {
   display: flex;
   justify-content: center;
@@ -42,6 +39,7 @@
   color: var(--text);
   border-color: rgba(123, 94, 167, 0.4);
 }
+
 .tab-btn:hover::before {
   opacity: 0.06;
 }
@@ -75,7 +73,7 @@
   background: rgba(123, 94, 167, 0.3);
 }
 
-/* ── MAIN CONTENT ── */
+/* Main Content Containers */
 main {
   padding: 36px 48px 80px;
   max-width: 1000px;
@@ -86,6 +84,7 @@ main {
   display: none;
   animation: panel-in 0.4s ease both;
 }
+
 .panel.active {
   display: block;
 }
@@ -104,14 +103,59 @@ main {
 .panel-header {
   margin-bottom: 32px;
 }
+
 .panel-title {
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -0.5px;
   margin-bottom: 6px;
 }
+
 .panel-desc {
   font-size: 14px;
   color: var(--text2);
   line-height: 1.6;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 900px) {
+  .tab-bar {
+    padding: 0 16px;
+  }
+  main {
+    padding: 28px 24px 60px;
+  }
+}
+
+@media (max-width: 600px) {
+  .tab-bar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    padding: 0 12px;
+    gap: 8px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .tab-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  main {
+    padding: 20px 12px 48px;
+  }
+  .panel-header {
+    margin-bottom: 20px;
+  }
+  .panel-title {
+    font-size: 22px;
+  }
+  .panel-desc {
+    font-size: 13px;
+  }
 }
