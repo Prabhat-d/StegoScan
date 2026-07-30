@@ -20,10 +20,10 @@ def detect():
         flat = arr.flatten()
         warning = ""
 
-        # 1. Signature Probe
+        # 1. Direct Signature Probing
         signature_detected, sig_type = probe_signature(flat)
 
-        # 2. Statistical Steganalysis
+        # 2. Multi-Metric Statistical Steganalysis
         R, G, B = arr[:,:,0], arr[:,:,1], arr[:,:,2]
 
         balance_r = lsb_balance(R)
@@ -46,7 +46,7 @@ def detect():
 
         chi_stat, chi_p = chi_pair_analysis(flat)
 
-        # RS Steganalysis
+        # RS Steganalysis payload estimation
         rs_p_r, rs_payload_r = rs_steganalysis(R)
         rs_p_g, rs_payload_g = rs_steganalysis(G)
         rs_p_b, rs_payload_b = rs_steganalysis(B)
@@ -88,6 +88,7 @@ def detect():
             score += 5
             reasons.append("Chi-square supports statistical alteration")
 
+        # Explicit signature match overrides statistical heuristic to 100% confidence
         if signature_detected:
             score = max(score, 100)
             reasons.insert(0, f"Pinpoint Steganography Signature Found: Verified {sig_type}")

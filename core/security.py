@@ -7,9 +7,11 @@ MAGIC_STGO = b'STGO'
 MAGIC_PWS1 = b'PWS1'
 
 def derive_key(password: str, salt: bytes, dklen: int = 32) -> bytes:
+    # PBKDF2-HMAC-SHA256 with 200k iterations for key stretching
     return hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 200000, dklen)
 
 def keystream_from_key(key: bytes, salt: bytes, length: int) -> bytes:
+    # Counter-mode keystream generator using HMAC-SHA256
     out = bytearray()
     counter = 0
     while len(out) < length:
@@ -44,6 +46,8 @@ def decode_payload(payload: bytes, password: str = "") -> dict:
         plain = bytes(c ^ ks[i] for i, c in enumerate(ciphertext))
         mac = plain[:32]
         raw = plain[32:]
+        
+        # Constant-time comparison to prevent timing attacks
         verify = hmac.new(key, raw, hashlib.sha256).digest()
         if not hmac.compare_digest(mac, verify):
             raise ValueError('PASSWORD_INCORRECT')

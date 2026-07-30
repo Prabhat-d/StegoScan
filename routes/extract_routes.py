@@ -15,7 +15,7 @@ def extract():
         img = Image.open(file)
         img = ImageOps.exif_transpose(img)
 
-        # Always convert to RGB to match embed layout
+        # Standardize to RGB to match embedding bitplane layout
         img = img.convert("RGB")
         arr = np.array(img)
         flat = arr.flatten()
@@ -24,6 +24,7 @@ def extract():
         if total_pixels < 32:
             return jsonify({'message': '', 'found': False, 'password_required': False})
 
+        # Read 32-bit header to get payload bit length
         length_bits = ''.join(str(flat[i] & 1) for i in range(32))
         try:
             payload_length = int(length_bits, 2)
@@ -63,6 +64,7 @@ def extract():
         if isinstance(result, tuple):
             return result
 
+        # Stream binary attachment directly to browser if payload is file or image
         if isinstance(result, dict) and result.get("payload_type") in ("file", "image"):
             bio = io.BytesIO(result["file_bytes"])
             bio.seek(0)

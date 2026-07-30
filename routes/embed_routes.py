@@ -44,13 +44,15 @@ def embed():
 
         img, optimized, original_size, preserved = optimize_cover_image(img, len(payload_bits))
         
-        # Consistently convert to RGB for 100% channel index alignment
+        # Standardize color space to RGB to ensure bit plane index alignment across platforms
         img = img.convert("RGB")
         arr = np.array(img)
 
+        # First 32 bits store payload length
         payload_length = format(len(payload_bits), '032b')
         binary_message = payload_length + payload_bits
 
+        # Robust profile pads LSB density to 45% for statistical detection benchmarking
         if embedding_profile == "robust":
             target_bits = int(arr.size * 0.45)
             if len(binary_message) < target_bits:

@@ -1,9 +1,10 @@
 import io
 import base64
 from PIL import Image
-from flask import jsonify, send_file
+from flask import jsonify
 
 def img_to_base64(img: Image.Image, fmt='PNG') -> str:
+    # Serialize PIL Image into base64 string for JSON API responses
     buf = io.BytesIO()
     img.save(buf, format=fmt)
     return base64.b64encode(buf.getvalue()).decode()
@@ -35,6 +36,7 @@ def build_image_payload(file_storage) -> dict:
     }
 
 def optimize_cover_image(img: Image.Image, payload_bits: int):
+    # Scale cover image dimensions to fit payload bit-capacity
     original_size = img.size
     width, height = img.size
     payload_mb = payload_bits / 8 / (1024 * 1024)
@@ -56,6 +58,7 @@ def optimize_cover_image(img: Image.Image, payload_bits: int):
     return optimized_img, optimized, original_size, max_size == max(width, height)
 
 def payload_to_response(message: dict):
+    # Formats decoded JSON dictionary into API response format
     ptype = message.get("type", "text")
     if ptype == "text":
         return jsonify({

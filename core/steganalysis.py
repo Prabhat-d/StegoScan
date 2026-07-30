@@ -6,6 +6,7 @@ from scipy.stats import chisquare
 from core.security import MAGIC_STGO, MAGIC_PWS1
 
 def probe_signature(flat: np.ndarray):
+    # Check for known StegoScan payload headers (STGO / PWS1) in the initial bits
     signature_detected = False
     sig_type = ""
     if flat.size >= 32:
@@ -29,6 +30,7 @@ def probe_signature(flat: np.ndarray):
     return signature_detected, sig_type
 
 def chi_pair_analysis(flat: np.ndarray):
+    # Chi-Square Pairs of Values (PoV) analysis for LSB embedding detection
     counts = np.bincount(flat, minlength=256).astype(float)
     obs, exp = [], []
     for i in range(0, 256, 2):
@@ -44,6 +46,7 @@ def chi_pair_analysis(flat: np.ndarray):
     return float(stat), float(p)
 
 def lsb_balance(channel: np.ndarray):
+    # Evaluate 0/1 bit ratio in LSB plane (random data approaches ~0.50)
     bits = channel & 1
     ones = np.sum(bits)
     total = bits.size
@@ -51,6 +54,7 @@ def lsb_balance(channel: np.ndarray):
     return {"ratio": float(ratio), "ones": int(ones), "zeros": int(total - ones)}
 
 def lsb_entropy(channel: np.ndarray):
+    # Shannon entropy of LSB layer (max entropy = 1.0 bit/pixel)
     bits = (channel & 1).flatten()
     p1 = np.mean(bits)
     p0 = 1 - p1
@@ -73,12 +77,14 @@ def region_lsb_statistics(channel: np.ndarray, parts=10):
     return ratios
 
 def cal_region_difference(channel: np.ndarray):
+    # Measures localized variance across 20 spatial image slices
     ratios = region_lsb_statistics(channel, parts=20)
     diffs = [abs(ratios[i] - ratios[i + 1]) for i in range(len(ratios) - 1)]
     avg_diff = float(np.mean(diffs)) if diffs else 0.0
     return ratios, avg_diff
 
 def rs_steganalysis(channel: np.ndarray):
+    # RS Steganalysis (Fridrich et al.) - dual quadratic curve solver for LSB estimate
     flat = channel.flatten().astype(np.int32)
     n = len(flat)
     if n < 100:
@@ -160,12 +166,14 @@ def rs_steganalysis(channel: np.ndarray):
     return p, payload_ratio
 
 def lsb_plane_b64(channel: np.ndarray):
+    # Isolates bitplane 0 (LSB) into a visual B&W mask
     img = Image.fromarray(((channel & 1) * 255).astype(np.uint8))
     buf = io.BytesIO()
     img.save(buf, format='PNG')
     return base64.b64encode(buf.getvalue()).decode()
 
 def get_bitplanes_b64(arr: np.ndarray):
+    # Generates LSB bitplane visualizations for R, G, B channels and combined RGB
     R, G, B = arr[:,:,0], arr[:,:,1], arr[:,:,2]
     lsb_r = lsb_plane_b64(R)
     lsb_g = lsb_plane_b64(G)
