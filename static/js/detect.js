@@ -1,6 +1,4 @@
-// ============================================
-// DETECT — LSB steganography detection & report rendering
-// ============================================
+/* Steganalysis forensic detection & UI report rendering */
 
 let currentBitplanes = null;
 
@@ -20,8 +18,7 @@ async function runDetect() {
   hideErr("detect-err");
   document.getElementById("detect-result").classList.remove("visible");
 
-  if (!file)
-    return showErr("detect-err", "Please select an image to analyse.");
+  if (!file) return showErr("detect-err", "Please select an image to analyse.");
 
   const btn = document.getElementById("detect-btn");
   if (btn) {
@@ -50,7 +47,7 @@ async function runDetect() {
 
     document.getElementById("detect-result").classList.add("visible");
 
-    // ── VERDICT BANNER ──
+    // Verdict summary banner
     const banner = document.getElementById("verdict-banner");
     const icon = document.getElementById("verdict-icon");
     const title = document.getElementById("verdict-title");
@@ -58,72 +55,55 @@ async function runDetect() {
     const sigType = data.sig_type || "StegoScan Payload";
 
     if (data.score >= 60) {
-      banner.style.cssText +=
-        "background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3);color:var(--red);";
+      banner.style.cssText += "background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3);color:var(--red);";
       icon.textContent = "🚨";
       title.textContent = "Strong Indicators of Hidden Data";
       sub.textContent = data.signature_detected
         ? `Verified ${sigType} header identified in image LSB plane.`
         : "Multiple statistical signals (RS Steganalysis, Chi-Square, Entropy) confirm high likelihood of hidden steganographic payload.";
     } else if (data.score >= 35) {
-      banner.style.cssText +=
-        "background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3);color:var(--amber);";
+      banner.style.cssText += "background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.3);color:var(--amber);";
       icon.textContent = "⚠️";
       title.textContent = "Possible Hidden Data";
-      sub.textContent =
-        "Some statistical anomalies detected. The image exhibits mild LSB distribution shifts.";
+      sub.textContent = "Some statistical anomalies detected. The image exhibits mild LSB distribution shifts.";
     } else {
-      banner.style.cssText +=
-        "background:rgba(0,229,160,0.08);border-color:rgba(0,229,160,0.3);color:var(--green);";
+      banner.style.cssText += "background:rgba(0,229,160,0.08);border-color:rgba(0,229,160,0.3);color:var(--green);";
       icon.textContent = "✅";
       title.textContent = "Image Appears Clean";
-      sub.textContent =
-        "No significant LSB statistical anomalies or RS steganography signals detected.";
+      sub.textContent = "No significant LSB statistical anomalies or RS steganography signals detected.";
     }
 
-    // ── RISK SCORE CIRCLE ──
+    // Risk score gauge & SVG ring
     const ring = document.getElementById("score-ring");
     const scoreNum = document.getElementById("score-num");
     const scoreLabel = document.getElementById("score-label");
     const circumference = 175.9;
     const score = data.score || 0;
-    const strokeColor =
-      score >= 60
-        ? "var(--red)"
-        : score >= 35
-          ? "var(--amber)"
-          : "var(--green)";
+    const strokeColor = score >= 60 ? "var(--red)" : score >= 35 ? "var(--amber)" : "var(--green)";
     ring.style.stroke = strokeColor;
     scoreLabel.style.color = strokeColor;
-    scoreLabel.textContent =
-      score >= 60
-        ? "High Risk"
-        : score >= 35
-          ? "Medium Risk"
-          : "Low Risk";
+    scoreLabel.textContent = score >= 60 ? "High Risk" : score >= 35 ? "Medium Risk" : "Low Risk";
     setTimeout(() => {
       ring.style.strokeDashoffset = circumference - (score / 100) * circumference;
       animateCount(scoreNum, score, 0, 1200);
     }, 200);
 
-    // ── REASONS ──
+    // Forensic findings list
     const reasonsList = document.getElementById("reasons-list");
     reasonsList.innerHTML = "";
     if (data.reasons && data.reasons.length > 0) {
       data.reasons.forEach((r, i) => {
         const d = document.createElement("div");
-        d.style.cssText =
-          "display:flex;align-items:flex-start;gap:7px;opacity:0;animation:fade-up 0.4s ease both;";
+        d.style.cssText = "display:flex;align-items:flex-start;gap:7px;opacity:0;animation:fade-up 0.4s ease both;";
         d.style.animationDelay = i * 0.1 + "s";
         d.innerHTML = `<span style="color:var(--amber);flex-shrink:0;margin-top:1px;">›</span><span>${r}</span>`;
         reasonsList.appendChild(d);
       });
     } else {
-      reasonsList.innerHTML =
-        '<span style="color:var(--text3);">No statistical anomalies detected</span>';
+      reasonsList.innerHTML = '<span style="color:var(--text3);">No statistical anomalies detected</span>';
     }
 
-    // ── REGION ANALYSIS ──
+    // Spatial region LSB variance
     setTimeout(() => {
       document.getElementById("region-start").textContent = data.region_start.toFixed(4);
       document.getElementById("region-end").textContent = data.region_end.toFixed(4);
@@ -161,12 +141,11 @@ async function runDetect() {
       }
     }, 300);
 
-    // ── METRIC BARS ANIMATION ──
     setTimeout(() => {
       document.querySelectorAll(".metric-bar").forEach((b) => (b.style.transform = "scaleX(1)"));
     }, 400);
 
-    // ── SUPPORTING METRICS ──
+    // Supporting metrics values
     setTimeout(() => {
       document.getElementById("sv-balance").textContent = (data.balance_ratio * 100).toFixed(2) + "%";
       document.getElementById("sv-entropy").textContent = data.lsb_entropy.toFixed(4);
@@ -174,18 +153,14 @@ async function runDetect() {
 
       const rsRatioEl = document.getElementById("sv-rs-ratio");
       const rsKbEl = document.getElementById("sv-rs-kb");
-      if (rsRatioEl) {
-        rsRatioEl.textContent = (data.rs_payload_ratio * 100).toFixed(1) + "%";
-      }
-      if (rsKbEl) {
-        rsKbEl.textContent = `est. ~${data.rs_estimated_kb} KB payload`;
-      }
+      if (rsRatioEl) rsRatioEl.textContent = (data.rs_payload_ratio * 100).toFixed(1) + "%";
+      if (rsKbEl) rsKbEl.textContent = `est. ~${data.rs_estimated_kb} KB payload`;
     }, 450);
 
-    // ── LSB BITPLANES ──
+    // Bitplane images (R, G, B, RGB)
     currentBitplanes = data.bitplanes || { red: data.lsb_plane };
     document.getElementById("lsb-img").src = "data:image/png;base64," + currentBitplanes.red;
-    
+
     document.querySelectorAll(".bitplane-tab-btn").forEach((b, idx) => {
       if (idx === 0) b.classList.add("active");
       else b.classList.remove("active");
@@ -197,7 +172,7 @@ async function runDetect() {
     const ratioPct = (data.lsb_ratio * 100).toFixed(1);
     document.getElementById("ls-ratio").textContent = ratioPct + "%";
 
-    // ── EXPLANATION ──
+    // Written summary report
     document.getElementById("explain-box").innerHTML = `
 <strong>Steganalysis Forensic Report:</strong><br>
 The risk assessment combines <strong>Header Signature Verification</strong>, <strong>RS Steganalysis (Fridrich et al.)</strong>, 

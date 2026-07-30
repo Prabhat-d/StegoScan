@@ -1,6 +1,4 @@
-// ============================================
-// EMBED — hide data inside an image
-// ============================================
+/* Embed form submission & result slider rendering */
 
 let stegoB64 = null;
 async function runEmbed() {
@@ -18,17 +16,10 @@ async function runEmbed() {
   hideErr("embed-err");
   document.getElementById("embed-result").classList.remove("visible");
 
-  if (!coverImage)
-    return showErr("embed-err", "Please select a cover image.");
-
-  if (hideType === "text" && !message)
-    return showErr("embed-err", "Please enter a message.");
-
-  if (hideType === "file" && !hiddenFile)
-    return showErr("embed-err", "Please choose a file to hide.");
-
-  if (hideType === "image" && !hiddenImage)
-    return showErr("embed-err", "Please choose an image to hide.");
+  if (!coverImage) return showErr("embed-err", "Please select a cover image.");
+  if (hideType === "text" && !message) return showErr("embed-err", "Please enter a message.");
+  if (hideType === "file" && !hiddenFile) return showErr("embed-err", "Please choose a file to hide.");
+  if (hideType === "image" && !hiddenImage) return showErr("embed-err", "Please choose an image to hide.");
 
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div><span>Embedding...</span>';
@@ -46,7 +37,6 @@ async function runEmbed() {
   try {
     optimizeBox.style.display = "block";
     optimizeBox.textContent = "Embedding secret payload into image LSBs...";
-
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const res = await fetch("/embed", {
@@ -55,7 +45,6 @@ async function runEmbed() {
     });
 
     const data = await res.json();
-
     if (data.error) {
       showErr("embed-err", data.error);
       return;
@@ -63,7 +52,6 @@ async function runEmbed() {
 
     optimizeBox.style.display = "block";
     optimizeBox.textContent = "✓ Embedding completed successfully.";
-
     stegoB64 = data.stego;
 
     const coverUrl = URL.createObjectURL(coverImage);

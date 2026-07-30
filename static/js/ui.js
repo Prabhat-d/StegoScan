@@ -1,24 +1,14 @@
-// ============================================
-// UI HELPERS — tabs, image preview, errors,
-// comparison slider, dropzone drag, misc toggles
-// ============================================
+/* UI interactions, file pickers, comparison slider, and modal handlers */
 
-// ── TABS ──
 function switchTab(name, btn) {
-  document
-    .querySelectorAll(".tab-btn")
-    .forEach((b) => b.classList.remove("active"));
-  document
-    .querySelectorAll(".panel")
-    .forEach((p) => p.classList.remove("active"));
-  btn.classList.add("active");
+  document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+  if (btn) btn.classList.add("active");
   document.getElementById("panel-" + name).classList.add("active");
 }
 
-// ── IMAGE PREVIEW & METADATA ──
 function previewImage(input, id) {
   const file = input.files[0];
-
   if (!file) return;
 
   if (file.size > 25 * 1024 * 1024) {
@@ -37,13 +27,9 @@ function previewImage(input, id) {
 
   const el = document.getElementById(id);
   const wrap = document.getElementById(id + "-wrap");
-
   el.src = URL.createObjectURL(file);
   el.style.display = "block";
-
-  if (wrap) {
-    wrap.style.display = "inline-block";
-  }
+  if (wrap) wrap.style.display = "inline-block";
 }
 
 function copyExtractedText() {
@@ -62,24 +48,15 @@ function clearSelectedImage(inputId, imgId, wrapId) {
     img.src = "";
     img.style.display = "none";
   }
-  if (wrap) {
-    wrap.style.display = "none";
-  }
+  if (wrap) wrap.style.display = "none";
 }
 
 function resetResults() {
-  document.querySelectorAll(".result-box").forEach((box) => {
-    box.classList.remove("visible");
-  });
-
-  document.querySelectorAll(".err").forEach((err) => {
-    err.style.display = "none";
-  });
+  document.querySelectorAll(".result-box").forEach((box) => box.classList.remove("visible"));
+  document.querySelectorAll(".err").forEach((err) => (err.style.display = "none"));
 
   const success = document.getElementById("embed-success");
-  if (success) {
-    success.style.display = "none";
-  }
+  if (success) success.style.display = "none";
 }
 
 function resetEmbedForm() {
@@ -103,17 +80,13 @@ function resetEmbedForm() {
 
 function toggleHideType() {
   const type = document.getElementById("hide-type").value;
-  document.getElementById("hide-text-block").style.display =
-    type === "text" ? "block" : "none";
-  document.getElementById("hide-file-block").style.display =
-    type === "file" ? "block" : "none";
-  document.getElementById("hide-image-block").style.display =
-    type === "image" ? "block" : "none";
+  document.getElementById("hide-text-block").style.display = type === "text" ? "block" : "none";
+  document.getElementById("hide-file-block").style.display = type === "file" ? "block" : "none";
+  document.getElementById("hide-image-block").style.display = type === "image" ? "block" : "none";
 }
 
 function toggleCustomSelect() {
-  const select = document.getElementById("hide-type-select");
-  select.classList.toggle("open");
+  document.getElementById("hide-type-select").classList.toggle("open");
 }
 
 function selectHideType(value, label) {
@@ -122,9 +95,7 @@ function selectHideType(value, label) {
 
   document.querySelectorAll(".custom-select-option").forEach((option) => {
     option.classList.remove("active");
-    if (option.dataset.value === value) {
-      option.classList.add("active");
-    }
+    if (option.dataset.value === value) option.classList.add("active");
   });
 
   document.getElementById("hide-type-select").classList.remove("open");
@@ -172,11 +143,9 @@ function selectProfile(value, label) {
 
   const desc = document.getElementById("profile-description");
   if (value === "standard") {
-    desc.textContent =
-      "Standard profile embeds only the original payload sequentially for minimal image modification.";
+    desc.textContent = "Standard profile embeds only the original payload sequentially for minimal image modification.";
   } else {
-    desc.textContent =
-      "Robust profile uses Keyed PRNG Bit Scattering to distribute payload bits across the whole image, evading spatial region detectors.";
+    desc.textContent = "Robust profile uses Keyed PRNG Bit Scattering to distribute payload bits across the whole image, evading spatial region detectors.";
   }
   document.getElementById("profile-select").classList.remove("open");
 }
@@ -193,17 +162,16 @@ function updatePickedFile(input, pickerId, textId, defaultText) {
   }
 }
 
-// ── ERRORS ──
 function showErr(id, msg) {
   const el = document.getElementById(id);
   el.textContent = "⚠ " + msg;
   el.style.display = "block";
 }
+
 function hideErr(id) {
   document.getElementById(id).style.display = "none";
 }
 
-// ── COUNTER ANIMATION ──
 function animateCount(el, target, decimals = 0, duration = 800) {
   let start = null;
   const step = (ts) => {
@@ -211,15 +179,12 @@ function animateCount(el, target, decimals = 0, duration = 800) {
     const p = Math.min((ts - start) / duration, 1);
     const ease = 1 - Math.pow(1 - p, 3);
     const val = ease * target;
-    el.textContent = decimals
-      ? val.toFixed(decimals)
-      : Math.round(val).toLocaleString();
+    el.textContent = decimals ? val.toFixed(decimals) : Math.round(val).toLocaleString();
     if (p < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
 }
 
-// ── DROPZONE DRAG ──
 document.querySelectorAll(".dropzone").forEach((dz) => {
   dz.addEventListener("dragover", (e) => {
     e.preventDefault();
@@ -232,7 +197,6 @@ document.querySelectorAll(".dropzone").forEach((dz) => {
   });
 });
 
-// ── PASSWORD WARNING TOGGLE ──
 (() => {
   const warn = document.getElementById("embed-pass-warn");
   const inp = document.getElementById("embed-password");
@@ -242,7 +206,7 @@ document.querySelectorAll(".dropzone").forEach((dz) => {
   });
 })();
 
-// ── INTERACTIVE STEGO COMPARISON SLIDER ──
+// Interactive stego comparison slider
 function setupComparisonSlider() {
   const container = document.getElementById("stego-slider-container");
   const overlay = document.getElementById("stego-slider-overlay");
@@ -251,7 +215,6 @@ function setupComparisonSlider() {
   if (!container || !overlay || !handle) return;
 
   let isDragging = false;
-
   const moveSlider = (clientX) => {
     const rect = container.getBoundingClientRect();
     let x = clientX - rect.left;
@@ -285,7 +248,7 @@ setInterval(updateClock, 1000);
 updateClock();
 document.addEventListener("DOMContentLoaded", setupComparisonSlider);
 
-// ── MODAL HANDLERS ──
+// Modal overlay triggers
 function openModal(modalId) {
   const modal = document.getElementById(modalId);
   if (modal) {
@@ -316,4 +279,3 @@ document.addEventListener("keydown", (e) => {
     document.body.style.overflow = "";
   }
 });
-

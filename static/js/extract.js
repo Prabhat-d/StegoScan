@@ -1,8 +1,5 @@
-// ============================================
-// EXTRACT — reveal hidden data from an image
-// ============================================
+/* Payload extraction & decryption response handler */
 
-// ── EXTRACT ──
 async function runExtract() {
   const file = document.getElementById("extract-file").files[0];
   const password = document.getElementById("extract-password").value;
@@ -12,8 +9,7 @@ async function runExtract() {
   document.getElementById("copy-extract-btn").style.display = "none";
   document.getElementById("extract-result").classList.remove("visible");
 
-  if (!file)
-    return showErr("extract-err", "Please select a stego image.");
+  if (!file) return showErr("extract-err", "Please select a stego image.");
 
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div><span>Extracting...</span>';
@@ -30,16 +26,12 @@ async function runExtract() {
 
     const contentType = res.headers.get("content-type") || "";
 
-    // ============================
-    // FILE / IMAGE DOWNLOAD
-    // ============================
+    // Binary file or image payload attachment response
     if (!contentType.includes("application/json")) {
       const blob = await res.blob();
-
       let filename = "hidden_file";
 
       const disposition = res.headers.get("Content-Disposition");
-
       if (disposition) {
         const match = disposition.match(/filename="?([^"]+)"?/);
         if (match) filename = match[1];
@@ -52,34 +44,23 @@ async function runExtract() {
 
       badge.textContent = "Hidden File Found";
       badge.className = "badge badge-success";
-
-      msgEl.textContent =
-        "Filename : " +
-        filename +
-        "\n\nClick the button below to download.";
-
+      msgEl.textContent = "Filename : " + filename + "\n\nClick the button below to download.";
       downloadBtn.style.display = "block";
 
       downloadBtn.onclick = () => {
         const url = URL.createObjectURL(blob);
-
         const a = document.createElement("a");
         a.href = url;
         a.download = filename;
         a.click();
-
         URL.revokeObjectURL(url);
       };
 
       resultBox.classList.add("visible");
-
       return;
     }
 
-    // ============================
-    // TEXT MESSAGE
-    // ============================
-
+    // Text payload JSON response
     const data = await res.json();
 
     if (data.error) {
@@ -96,38 +77,29 @@ async function runExtract() {
     if (data.password_incorrect) {
       badge.textContent = "Incorrect password";
       badge.className = "badge badge-danger";
-
       msgEl.textContent = "The password you entered is incorrect.";
     } else if (data.password_required) {
       badge.textContent = "Password required";
       badge.className = "badge badge-warn";
-
       msgEl.textContent = "This payload is password protected.";
     } else if (!data.found || !data.message) {
       badge.textContent = "No message found";
       badge.className = "badge badge-warn";
-
       msgEl.textContent = "(No hidden message detected in this image)";
     } else {
       badge.textContent = "Message recovered";
       badge.className = "badge badge-success";
-
-      document.getElementById("copy-extract-btn").style.display =
-        "inline-flex";
+      document.getElementById("copy-extract-btn").style.display = "inline-flex";
 
       msgEl.textContent = "";
-
       const chars = data.message.split("");
-
       let i = 0;
-
       const type = () => {
         if (i < chars.length) {
           msgEl.textContent += chars[i++];
           setTimeout(type, 18);
         }
       };
-
       type();
     }
 
