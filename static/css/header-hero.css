@@ -1,6 +1,4 @@
-/* ============================================
-   HEADER & HERO SECTIONS
-   ============================================ */
+/* Header & Hero Navigation */
 
 /* ── HEADER ── */
 header {
@@ -181,6 +179,7 @@ header {
   text-align: center;
   padding: 72px 48px 56px;
   position: relative;
+  overflow: hidden;
 }
 
 .hero::before {
@@ -381,4 +380,102 @@ header {
 .pill-icon {
   font-size: 13px;
 }
+
+/* ── RESPONSIVE MEDIA QUERIES ── */
+.hero-tab-container {
+  padding: 0 48px;
+}
+
+@media (max-width: 900px) {
+  header {
+    padding: 0 24px;
+    height: 70px;
+  }
+  .hero-tab-container {
+    padding: 0 24px;
+  }
+  .hero {
+    padding: 48px 16px 36px;
+  }
+  .hero-title {
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  header {
+    padding: 0 16px;
+    height: 64px;
+  }
+  .hero-tab-container {
+    padding: 0 12px;
+  }
+  .brand-name {
+    font-size: 17px;
+  }
+  .brand-tag {
+    font-size: 9px;
+  }
+  .nav-logo {
+    width: 44px;
+    height: 44px;
+    transform: scale(1);
+  }
+  .live-clock {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+  .header-badge {
+    font-size: 9px;
+    padding: 4px 8px;
+  }
+  .hero {
+    padding: 32px 8px 24px;
+    overflow: hidden;
+  }
+  .hero-orbit {
+    width: 280px;
+    height: 280px;
+    top: 10px;
+  }
+  .orbit-ring:nth-child(2) {
+    inset: 35px;
+  }
+  .orbit-ring:nth-child(3) {
+    inset: 70px;
+  }
+  .hero-title {
+    font-size: 28px;
+    letter-spacing: -1px;
+  }
+  .hero-sub {
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  .user-status-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    max-width: 100%;
+    margin-bottom: 24px;
+  }
+  .status-pill {
+    width: 100%;
+    justify-content: center;
+    font-size: 11px;
+    padding: 8px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pill-title {
+    display: none;
+  }
+  .pill-val {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 
