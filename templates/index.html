@@ -20,19 +20,19 @@
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/tabs.css') }}?v=6.0"
+      href="{{ url_for('static', filename='css/tabs.css') }}?v=9.0"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/forms.css') }}?v=6.0"
+      href="{{ url_for('static', filename='css/forms.css') }}?v=9.0"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/results.css') }}?v=6.0"
+      href="{{ url_for('static', filename='css/results.css') }}?v=9.0"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/misc.css') }}?v=6.0"
+      href="{{ url_for('static', filename='css/misc.css') }}?v=9.0"
     />
     <link
       rel="icon"
@@ -110,6 +110,32 @@ class="nav-logo"
               <span class="pill-icon">⚡</span>
               <span class="pill-title">Max Capacity:</span>
               <span class="pill-val">Up to 25 MB</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CUSTOM THEME-ALIGNED MOBILE DROPDOWN -->
+        <div class="mobile-tab-selector-wrap">
+          <div class="mobile-tab-label">Security Module:</div>
+          <div class="custom-mobile-dropdown" id="mobile-tool-dropdown">
+            <button type="button" class="custom-dropdown-trigger" onclick="toggleMobileDropdown(event)">
+              <span id="mobile-dropdown-selected-icon">🔒</span>
+              <span id="mobile-dropdown-selected-text">Embed Secret Message</span>
+              <span class="custom-dropdown-arrow">▼</span>
+            </button>
+            <div class="custom-dropdown-menu" id="mobile-dropdown-menu">
+              <div class="custom-dropdown-option active" id="opt-embed" onclick="selectMobileTool('embed', '🔒', 'Embed Secret Message', event)">
+                <span class="option-icon">🔒</span>
+                <span class="option-text">Embed Secret Message</span>
+              </div>
+              <div class="custom-dropdown-option" id="opt-extract" onclick="selectMobileTool('extract', '🔍', 'Extract Secret Payload', event)">
+                <span class="option-icon">🔍</span>
+                <span class="option-text">Extract Secret Payload</span>
+              </div>
+              <div class="custom-dropdown-option" id="opt-detect" onclick="selectMobileTool('detect', '📊', 'Detect Steganography', event)">
+                <span class="option-icon">📊</span>
+                <span class="option-text">Detect Steganography</span>
+              </div>
             </div>
           </div>
         </div>
@@ -925,7 +951,9 @@ class="nav-logo"
                 style="
                   display: flex;
                   justify-content: space-between;
-                  align-items: center;
+                  align-items: flex-start;
+                  flex-wrap: wrap;
+                  gap: 8px;
                   margin-bottom: 16px;
                 "
               >
@@ -962,14 +990,7 @@ class="nav-logo"
               </div>
 
               <!-- REGION BARS -->
-              <div
-                style="
-                  display: grid;
-                  grid-template-columns: 1fr 1fr 1fr;
-                  gap: 10px;
-                  margin-bottom: 16px;
-                "
-              >
+              <div class="region-bars-grid">
                 <div
                   style="
                     background: var(--bg3);
@@ -1396,14 +1417,7 @@ class="nav-logo"
             </div>
 
             <!-- LSB PLANE + STATS -->
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 14px;
-                margin-bottom: 16px;
-              "
-            >
+            <div class="bitplane-inspector-grid">
               <div
                 style="
                   background: var(--bg2);
@@ -1683,10 +1697,10 @@ class="nav-logo"
 
     <!-- Scripts (split by feature — see /js). Order matters: background.js
          declares shared state (selectedPayloadMB) used by ui.js/embed.js -->
-    <script src="{{ url_for('static', filename='js/background.js') }}?v=3.0"></script>
-    <script src="{{ url_for('static', filename='js/ui.js') }}?v=3.0"></script>
-    <script src="{{ url_for('static', filename='js/embed.js') }}?v=3.0"></script>
-    <script src="{{ url_for('static', filename='js/extract.js') }}?v=3.0"></script>
-    <script src="{{ url_for('static', filename='js/detect.js') }}?v=3.0"></script>
+    <script src="{{ url_for('static', filename='js/background.js') }}?v=6.0"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}?v=6.0"></script>
+    <script src="{{ url_for('static', filename='js/embed.js') }}?v=6.0"></script>
+    <script src="{{ url_for('static', filename='js/extract.js') }}?v=6.0"></script>
+    <script src="{{ url_for('static', filename='js/detect.js') }}?v=6.0"></script>
   </body>
 </html>
