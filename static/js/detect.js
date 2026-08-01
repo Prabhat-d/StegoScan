@@ -2,6 +2,43 @@
 
 let currentBitplanes = null;
 
+function toggleDetectView(mode) {
+  const btnOverview = document.getElementById("tab-btn-overview");
+  const btnAdvanced = document.getElementById("tab-btn-advanced");
+  const viewOverview = document.getElementById("view-detect-overview");
+  const viewAdvanced = document.getElementById("view-detect-advanced");
+
+  if (!btnOverview || !btnAdvanced || !viewOverview || !viewAdvanced) return;
+
+  if (mode === "overview") {
+    btnOverview.style.borderColor = "var(--accent)";
+    btnOverview.style.background = "var(--bg2)";
+    btnOverview.style.color = "#fff";
+    btnOverview.classList.add("active");
+
+    btnAdvanced.style.borderColor = "var(--border)";
+    btnAdvanced.style.background = "var(--bg1)";
+    btnAdvanced.style.color = "var(--text2)";
+    btnAdvanced.classList.remove("active");
+
+    viewOverview.style.display = "block";
+    viewAdvanced.style.display = "none";
+  } else {
+    btnAdvanced.style.borderColor = "var(--accent)";
+    btnAdvanced.style.background = "var(--bg2)";
+    btnAdvanced.style.color = "#fff";
+    btnAdvanced.classList.add("active");
+
+    btnOverview.style.borderColor = "var(--border)";
+    btnOverview.style.background = "var(--bg1)";
+    btnOverview.style.color = "var(--text2)";
+    btnOverview.classList.remove("active");
+
+    viewOverview.style.display = "none";
+    viewAdvanced.style.display = "block";
+  }
+}
+
 function switchBitplane(channel, btn) {
   if (!currentBitplanes) return;
   document.querySelectorAll(".bitplane-tab-btn").forEach((b) => b.classList.remove("active"));
@@ -46,6 +83,9 @@ async function runDetect() {
     }
 
     document.getElementById("detect-result").classList.add("visible");
+    
+    // Always default to Overview mode on new scan
+    toggleDetectView("overview");
 
     // Verdict summary banner
     const banner = document.getElementById("verdict-banner");
@@ -101,6 +141,27 @@ async function runDetect() {
       });
     } else {
       reasonsList.innerHTML = '<span style="color:var(--text3);">No statistical anomalies detected</span>';
+    }
+
+    // Executive Plain-English Summary Text
+    const summaryBox = document.getElementById("executive-summary-text");
+    if (summaryBox) {
+      if (score >= 60) {
+        summaryBox.innerHTML = `
+          <strong>Verdict:</strong> 🔴 <span style="color: var(--red); font-weight:700;">Secret Hidden Payload Detected (~${data.rs_estimated_kb} KB)</span><br>
+          <strong>Explanation:</strong> StegoScan identified artificial pixel alterations consistent with hidden data embedding. Natural camera photos do not exhibit this degree of lower-bit distribution shift.
+        `;
+      } else if (score >= 35) {
+        summaryBox.innerHTML = `
+          <strong>Verdict:</strong> 🟡 <span style="color: var(--amber); font-weight:700;">Suspicious Pixel Anomalies (~${data.rs_estimated_kb} KB)</span><br>
+          <strong>Explanation:</strong> Mild LSB noise detected. This can happen with heavy image compression or low-light photos, but could indicate low-density hidden data.
+        `;
+      } else {
+        summaryBox.innerHTML = `
+          <strong>Verdict:</strong> 🟢 <span style="color: var(--green); font-weight:700;">Clean & Natural Image</span><br>
+          <strong>Explanation:</strong> Pixel bits strictly follow natural camera photo distributions. No steganographic signatures or secret hidden payloads were found.
+        `;
+      }
     }
 
     // Spatial region LSB variance

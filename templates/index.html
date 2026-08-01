@@ -20,19 +20,19 @@
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/tabs.css') }}?v=5.0"
+      href="{{ url_for('static', filename='css/tabs.css') }}?v=6.0"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/forms.css') }}?v=5.0"
+      href="{{ url_for('static', filename='css/forms.css') }}?v=6.0"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/results.css') }}?v=5.0"
+      href="{{ url_for('static', filename='css/results.css') }}?v=6.0"
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/misc.css') }}?v=5.0"
+      href="{{ url_for('static', filename='css/misc.css') }}?v=6.0"
     />
     <link
       rel="icon"
@@ -702,6 +702,16 @@ class="nav-logo"
           <div class="err" id="detect-err"></div>
 
           <div class="result-box" id="detect-result">
+            <!-- DETECTOR TOGGLE BAR -->
+            <div class="detect-toggle-bar" style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
+              <button type="button" class="detect-toggle-btn active" id="tab-btn-overview" onclick="toggleDetectView('overview')" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 10px; border: 1px solid var(--accent); background: var(--bg2); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                <span>📊 Overview</span>
+              </button>
+              <button type="button" class="detect-toggle-btn" id="tab-btn-advanced" onclick="toggleDetectView('advanced')" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg1); color: var(--text2); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                <span>🔬 Advanced Forensics</span>
+              </button>
+            </div>
+
             <div
               id="detect-warning"
               style="
@@ -717,6 +727,8 @@ class="nav-logo"
               "
             ></div>
 
+            <!-- OVERVIEW VIEW (DEFAULT OPEN) -->
+            <div id="view-detect-overview" class="detect-view-content" style="display: block;">
             <!-- MAIN VERDICT BANNER -->
             <div
               id="verdict-banner"
@@ -886,6 +898,19 @@ class="nav-logo"
               </div>
             </div>
 
+            <!-- EXECUTIVE PLAIN-ENGLISH SUMMARY CARD -->
+            <div id="executive-summary-card" style="background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 20px;">
+              <div style="font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent2); font-family: var(--mono); margin-bottom: 8px;">
+                💡 Plain-English Summary
+              </div>
+              <div id="executive-summary-text" style="font-size: 14px; color: var(--text); line-height: 1.6;">
+                —
+              </div>
+            </div>
+            </div><!-- END OVERVIEW VIEW -->
+
+            <!-- ADVANCED FORENSICS VIEW (EXPANDED ON CLICK) -->
+            <div id="view-detect-advanced" class="detect-view-content" style="display: none;">
             <!-- REGION ANALYSIS — DECISION MAKER -->
             <div
               style="
@@ -1497,8 +1522,8 @@ class="nav-logo"
             >
               ℹ️ This analysis is based on statistical LSB patterns. Results
               indicate probability, not absolute proof. Very small hidden
-              payloads or advanced techniques may not be detected.
             </div>
+            </div><!-- END ADVANCED VIEW -->
           </div>
         </div>
       </main>
@@ -1658,10 +1683,10 @@ class="nav-logo"
 
     <!-- Scripts (split by feature — see /js). Order matters: background.js
          declares shared state (selectedPayloadMB) used by ui.js/embed.js -->
-    <script src="{{ url_for('static', filename='js/background.js') }}?v=2.1"></script>
-    <script src="{{ url_for('static', filename='js/ui.js') }}?v=2.1"></script>
-    <script src="{{ url_for('static', filename='js/embed.js') }}?v=2.1"></script>
-    <script src="{{ url_for('static', filename='js/extract.js') }}?v=2.1"></script>
-    <script src="{{ url_for('static', filename='js/detect.js') }}?v=2.1"></script>
+    <script src="{{ url_for('static', filename='js/background.js') }}?v=3.0"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}?v=3.0"></script>
+    <script src="{{ url_for('static', filename='js/embed.js') }}?v=3.0"></script>
+    <script src="{{ url_for('static', filename='js/extract.js') }}?v=3.0"></script>
+    <script src="{{ url_for('static', filename='js/detect.js') }}?v=3.0"></script>
   </body>
 </html>

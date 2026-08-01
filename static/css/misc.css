@@ -469,3 +469,65 @@
     width: fit-content;
   }
 }
+
+/* Detector Overview / Advanced Forensics Sub-tabs */
+.detect-subtabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: var(--bg2);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  width: fit-content;
+}
+
+.detect-subtab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text2);
+  font-size: 13px;
+  font-family: var(--sans);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.detect-subtab-btn:hover {
+  color: var(--text);
+}
+
+.detect-subtab-btn.active {
+  background: var(--bg1);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--glow2);
+}
+
+.detect-section {
+  display: none;
+  animation: fade-up 0.4s ease both;
+}
+
+.detect-section.active {
+  display: block;
+}
+
+@media (max-width: 600px) {
+  .detect-subtabs {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .detect-subtab-btn {
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+
