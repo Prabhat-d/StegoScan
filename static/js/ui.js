@@ -1,10 +1,62 @@
 /* UI interactions, file pickers, comparison slider, and modal handlers */
 
+function toggleMobileDropdown() {
+  const dd = document.getElementById("mobile-tool-dropdown");
+  if (dd) dd.classList.toggle("open");
+}
+
+function selectMobileTool(name, icon, label) {
+  const iconEl = document.getElementById("mobile-dropdown-selected-icon");
+  const textEl = document.getElementById("mobile-dropdown-selected-text");
+  if (iconEl) iconEl.textContent = icon;
+  if (textEl) textEl.textContent = label;
+
+  document.querySelectorAll(".custom-dropdown-option").forEach((opt) => opt.classList.remove("active"));
+  const activeOpt = document.getElementById("opt-" + name);
+  if (activeOpt) activeOpt.classList.add("active");
+
+  const dd = document.getElementById("mobile-tool-dropdown");
+  if (dd) dd.classList.remove("open");
+
+  switchTab(name, null);
+}
+
+document.addEventListener("click", (e) => {
+  const dd = document.getElementById("mobile-tool-dropdown");
+  if (dd && !dd.contains(e.target)) {
+    dd.classList.remove("open");
+  }
+});
+
 function switchTab(name, btn) {
   document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
   document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
-  if (btn) btn.classList.add("active");
-  document.getElementById("panel-" + name).classList.add("active");
+
+  if (btn) {
+    btn.classList.add("active");
+  } else {
+    const targetBtn = document.querySelector(`.tab-btn[onclick*="'${name}'"]`);
+    if (targetBtn) targetBtn.classList.add("active");
+  }
+
+  const panel = document.getElementById("panel-" + name);
+  if (panel) panel.classList.add("active");
+
+  const labels = {
+    embed: { icon: "🔒", label: "Embed Secret Message" },
+    extract: { icon: "🔍", label: "Extract Secret Payload" },
+    detect: { icon: "📊", label: "Detect Steganography" }
+  };
+  if (labels[name]) {
+    const iconEl = document.getElementById("mobile-dropdown-selected-icon");
+    const textEl = document.getElementById("mobile-dropdown-selected-text");
+    if (iconEl) iconEl.textContent = labels[name].icon;
+    if (textEl) textEl.textContent = labels[name].label;
+
+    document.querySelectorAll(".custom-dropdown-option").forEach((opt) => opt.classList.remove("active"));
+    const activeOpt = document.getElementById("opt-" + name);
+    if (activeOpt) activeOpt.classList.add("active");
+  }
 }
 
 function previewImage(input, id) {
