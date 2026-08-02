@@ -8,11 +8,28 @@ from core.steganalysis import (
 
 detect_bp = Blueprint('detect_bp', __name__)
 
+ALLOWED_FORMATS = {'png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'tif'}
+
 @detect_bp.route('/detect', methods=['POST'])
 def detect():
     try:
         file = request.files['image']
-        img = Image.open(file)
+
+        # Reject unsupported formats before attempting to open
+        filename = file.filename or ''
+        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+        if ext not in ALLOWED_FORMATS:
+            friendly = ext.upper() if ext else 'Unknown'
+            return jsonify({'error': f'Unsupported file format: {friendly}. Please upload a PNG, JPG, WEBP, or BMP image.'}), 400
+
+        try:
+            img = Image.open(file)
+            img.verify()          # catches truncated / corrupt files
+            file.seek(0)
+            img = Image.open(file)
+        except Exception:
+            return jsonify({'error': 'Could not read the image. The file may be corrupt or not a valid image.'}), 400
+
         img = ImageOps.exif_transpose(img)
         img_rgb = img.convert("RGB")
         arr = np.array(img_rgb)
@@ -61,34 +78,56 @@ def detect():
 
         score = 0
         reasons = []
-
-        if region_difference > 0.015:
-            score += 40
-            reasons.append("Strong regional LSB variation detected")
-        elif region_difference > 0.008:
-            score += 15
-            reasons.append("Moderate regional LSB variation detected")
-
         balance_shift = abs(balance_ratio - 0.5)
-        if balance_shift > 0.025:
-            score += 45
-            reasons.append("Abnormal LSB distribution detected")
-        elif balance_shift > 0.012:
-            score += 20
-            reasons.append("Minor LSB distribution shift detected")
 
-        if entropy_avg < 0.998:
+        # NOTE ON AI-GENERATED IMAGES:
+        # AI/neural images (Midjourney, DALL-E, Stable Diffusion) and high-quality DSLR photos
+        # naturally produce near-maximum LSB entropy (~0.999) and near-50:50 bit ratios because
+        # their pixel values are computed, not captured with sensor noise. This is NOT steganography.
+        # RS Steganalysis and Regional Variation are the only reliable primary signals —
+        # entropy and chi-square alone are NOT sufficient to flag an image.
+
+        # 1. RS Steganalysis Payload Estimation (Fridrich et al.) — primary signal, highest weight
+        if rs_payload_ratio >= 0.20:
+            score += 50
+            reasons.append(f"RS Steganalysis: significant hidden payload detected (~{round(rs_payload_ratio*100, 1)}% of capacity, est. {round(rs_estimated_kb, 1)} KB)")
+        elif rs_payload_ratio >= 0.08:
             score += 30
-            reasons.append("Reduced LSB randomness detected")
-        elif entropy_avg < 0.999:
+            reasons.append(f"RS Steganalysis: moderate hidden payload detected (~{round(rs_payload_ratio*100, 1)}% of capacity, est. {round(rs_estimated_kb, 1)} KB)")
+        elif rs_payload_ratio >= 0.03:
+            score += 12
+            reasons.append(f"RS Steganalysis: minor LSB payload detected (~{round(rs_payload_ratio*100, 1)}% of capacity)")
+
+        # 2. Regional LSB Variation (Sequential Embedding Pattern) — primary corroborating signal
+        # Natural photos and AI images have smooth region transitions; embedding creates sharp jumps
+        if region_difference > 0.018:
+            score += 35
+            reasons.append(f"Strong sequential embedding pattern detected (regional LSB shift: {round(region_difference, 4)})")
+        elif region_difference > 0.010:
+            score += 18
+            reasons.append(f"Moderate regional LSB variation detected ({round(region_difference, 4)})")
+
+        # 3. Chi-Square PoV — only meaningful when combined with RS or Regional signal
+        # On its own, chi-square is unreliable for AI images; award points only if RS also fired
+        if chi_p < 0.001 and rs_payload_ratio >= 0.03:
+            score += 20
+            reasons.append(f"Chi-square PoV confirms statistical LSB alteration (p < 0.001)")
+        elif chi_p < 0.01 and rs_payload_ratio >= 0.08:
             score += 10
-            reasons.append("Slight randomness reduction detected")
+            reasons.append(f"Chi-square PoV supports statistical LSB alteration (p = {round(chi_p, 4)})")
 
-        if chi_p < 0.05:
-            score += 5
-            reasons.append("Chi-square supports statistical alteration")
+        # 4. High LSB Entropy — only scored when RS also indicates payload
+        # AI and DSLR images naturally reach entropy ~0.999; this signal alone means nothing
+        if entropy_avg >= 0.9995 and rs_payload_ratio >= 0.05:
+            score += 15
+            reasons.append(f"Near-maximum LSB entropy ({round(entropy_avg, 4)}) consistent with encrypted payload")
 
-        # Explicit signature match overrides statistical heuristic to 100% confidence
+        # 5. Artificial 50:50 forced distribution — only meaningful with RS corroboration
+        if balance_shift < 0.003 and rs_payload_ratio >= 0.08:
+            score += 10
+            reasons.append(f"LSB bit ratio near-perfect 50:50 ({round(balance_ratio*100, 2)}%), consistent with encrypted embedding")
+
+        # Explicit signature match overrides all heuristics to 100%
         if signature_detected:
             score = max(score, 100)
             reasons.insert(0, f"Pinpoint Steganography Signature Found: Verified {sig_type}")
@@ -96,7 +135,7 @@ def detect():
         score = min(score, 100)
         confidence = score
 
-        if score >= 60:
+        if score >= 65:
             status = "Strong Indicators of Hidden Data"
         elif score >= 35:
             status = "Possible Hidden Data"

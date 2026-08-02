@@ -7,12 +7,21 @@ from core.stego_engine import (
     optimize_cover_image, img_to_base64
 )
 
+ALLOWED_FORMATS = {'png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'tif'}
+
 embed_bp = Blueprint('embed_bp', __name__)
 
 @embed_bp.route('/embed', methods=['POST'])
 def embed():
     try:
         file = request.files['image']
+
+        filename = file.filename or ''
+        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+        if ext not in ALLOWED_FORMATS:
+            friendly = ext.upper() if ext else 'Unknown'
+            return jsonify({'error': f'Unsupported file format: {friendly}. Please upload a PNG, JPG, WEBP, or BMP image.'}), 400
+
         file.seek(0, 2)
         original_file_mb = file.tell() / (1024 * 1024)
         file.seek(0)
@@ -21,7 +30,14 @@ def embed():
         payload_type = request.form.get('payload_type', 'text').strip().lower()
         embedding_profile = request.form.get("embedding_profile", "standard").strip().lower()
 
-        img = Image.open(file)
+        try:
+            img = Image.open(file)
+            img.verify()
+            file.seek(0)
+            img = Image.open(file)
+        except Exception:
+            return jsonify({'error': 'Could not read the image. The file may be corrupt or not a valid image.'}), 400
+
         img = ImageOps.exif_transpose(img)
 
         if payload_type == "text":

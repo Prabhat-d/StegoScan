@@ -5,6 +5,8 @@ from PIL import Image, ImageOps
 from core.security import decode_payload
 from core.stego_engine import payload_to_response
 
+ALLOWED_FORMATS = {'png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'tif'}
+
 extract_bp = Blueprint('extract_bp', __name__)
 
 @extract_bp.route('/extract', methods=['POST'])
@@ -12,7 +14,21 @@ def extract():
     try:
         file = request.files['image']
         password = request.form.get('password', '').strip()
-        img = Image.open(file)
+
+        filename = file.filename or ''
+        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+        if ext not in ALLOWED_FORMATS:
+            friendly = ext.upper() if ext else 'Unknown'
+            return jsonify({'error': f'Unsupported file format: {friendly}. Please upload a PNG, JPG, WEBP, or BMP image.'}), 400
+
+        try:
+            img = Image.open(file)
+            img.verify()
+            file.seek(0)
+            img = Image.open(file)
+        except Exception:
+            return jsonify({'error': 'Could not read the image. The file may be corrupt or not a valid image.'}), 400
+
         img = ImageOps.exif_transpose(img)
 
         # Standardize to RGB to match embedding bitplane layout
