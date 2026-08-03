@@ -372,3 +372,97 @@ document.addEventListener("keydown", (e) => {
     document.body.style.overflow = "";
   }
 });
+
+// ─── Drag & Drop Engine ──────────────────────────────────────────────────────
+// Config for each dropzone: which input to populate, what to validate, what to run after drop
+const DROPZONE_CONFIGS = [
+  {
+    zoneId:   "embed-drop",
+    inputId:  "embed-file",
+    errId:    "embed-err",
+    allowedExts: ALLOWED_IMAGE_EXTS,
+    customMsg: null,
+    onDrop: (input) => {
+      if (!validateImageFile(input, "embed-err")) return;
+      resetResults();
+      previewImage(input, "embed-prev");
+      showImageCapacity(input);
+    }
+  },
+  {
+    zoneId:   "extract-drop",
+    inputId:  "extract-file",
+    errId:    "extract-err",
+    allowedExts: PNG_ONLY_EXTS,
+    customMsg: "❌ Extract requires a PNG image — {ext} files use lossy compression that destroys hidden data.",
+    onDrop: (input) => {
+      if (!validateImageFile(input, "extract-err", PNG_ONLY_EXTS,
+        "❌ Extract requires a PNG image — {ext} files use lossy compression that destroys hidden data.")) return;
+      resetResults();
+      previewImage(input, "extract-prev");
+    }
+  },
+  {
+    zoneId:   "detect-drop",
+    inputId:  "detect-file",
+    errId:    "detect-err",
+    allowedExts: ALLOWED_IMAGE_EXTS,
+    customMsg: null,
+    onDrop: (input) => {
+      if (!validateImageFile(input, "detect-err")) return;
+      resetResults();
+      previewImage(input, "detect-prev");
+    }
+  }
+];
+
+function initDropzones() {
+  DROPZONE_CONFIGS.forEach(({ zoneId, inputId, onDrop }) => {
+    const zone  = document.getElementById(zoneId);
+    const input = document.getElementById(inputId);
+    if (!zone || !input) return;
+
+    // Prevent browser default of opening the file in a new tab
+    zone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      zone.classList.add("over");
+    });
+
+    zone.addEventListener("dragenter", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      zone.classList.add("over");
+    });
+
+    zone.addEventListener("dragleave", (e) => {
+      // Only remove highlight when cursor truly leaves the zone (not a child element)
+      if (!zone.contains(e.relatedTarget)) {
+        zone.classList.remove("over");
+      }
+    });
+
+    zone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      zone.classList.remove("over");
+
+      const files = e.dataTransfer.files;
+      if (!files || files.length === 0) return;
+
+      // Inject the dropped file into the hidden <input> so onDrop callbacks work normally
+      const dt = new DataTransfer();
+      dt.items.add(files[0]);
+      input.files = dt.files;
+
+      onDrop(input);
+    });
+  });
+}
+
+// Initialise after DOM is ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initDropzones);
+} else {
+  initDropzones();
+}
