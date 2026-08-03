@@ -1,5 +1,46 @@
 /* UI interactions, file pickers, comparison slider, and modal handlers */
 
+const ALLOWED_IMAGE_EXTS = new Set(['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'tif']);
+const PNG_ONLY_EXTS = new Set(['png']);
+
+// Pops a red error banner at top-center of the screen — visible regardless of scroll position
+function showFormatErrorToast(msg) {
+  let toast = document.getElementById('format-error-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'format-error-toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(() => toast.classList.remove('show'), 4500);
+}
+
+/**
+ * Validates file extension immediately on file pick.
+ * allowedExts: Set of allowed extensions (default: all image types)
+ * customMsg:   Optional override for the toast message
+ */
+function validateImageFile(input, errId, allowedExts, customMsg) {
+  if (errId) hideErr(errId);
+  const file = input.files[0];
+  if (!file) return true;
+
+  const exts = allowedExts || ALLOWED_IMAGE_EXTS;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!exts.has(ext)) {
+    const friendly = ext ? ext.toUpperCase() : 'Unknown';
+    const msg = customMsg
+      ? customMsg.replace('{ext}', friendly)
+      : `\u274c Unsupported format: ${friendly} \u2014 please select a PNG, JPG, WEBP, or BMP image.`;
+    showFormatErrorToast(msg);
+    input.value = '';
+    return false;
+  }
+  return true;
+}
+
 function toggleMobileDropdown() {
   const dd = document.getElementById("mobile-tool-dropdown");
   if (dd) dd.classList.toggle("open");

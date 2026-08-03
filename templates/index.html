@@ -12,7 +12,7 @@
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/layout.css') }}?v=5.0"
+      href="{{ url_for('static', filename='css/layout.css') }}?v=7.0"
     />
     <link
       rel="stylesheet"
@@ -24,7 +24,7 @@
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/forms.css') }}?v=9.0"
+      href="{{ url_for('static', filename='css/forms.css') }}?v=12.0"
     />
     <link
       rel="stylesheet"
@@ -32,7 +32,7 @@
     />
     <link
       rel="stylesheet"
-      href="{{ url_for('static', filename='css/misc.css') }}?v=9.0"
+      href="{{ url_for('static', filename='css/misc.css') }}?v=10.0"
     />
     <link
       rel="icon"
@@ -176,6 +176,7 @@ class="nav-logo"
                 id="embed-file"
                 accept="image/*"
                 onchange="
+                  if (!validateImageFile(this, 'embed-err')) return;
                   resetResults();
                   previewImage(this, 'embed-prev');
                   showImageCapacity(this);
@@ -184,7 +185,7 @@ class="nav-logo"
               <div class="dz-icon">🖼️</div>
               <div class="dz-title">Drop your image here</div>
               <div class="dz-sub">
-                or <span>click to browse</span> — PNG, JPG, WEBP
+                or <span>click to browse</span> — PNG · JPG · WEBP
               </div>
             </div>
 
@@ -573,8 +574,10 @@ class="nav-logo"
               <input
                 type="file"
                 id="extract-file"
-                accept="image/*"
+                accept=".png"
                 onchange="
+                  if (!validateImageFile(this, 'extract-err', PNG_ONLY_EXTS,
+                    '❌ Extract requires a PNG image — {ext} files use lossy compression that destroys hidden data.')) return;
                   resetResults();
                   previewImage(this, 'extract-prev');
                 "
@@ -582,7 +585,7 @@ class="nav-logo"
               <div class="dz-icon">🔍</div>
               <div class="dz-title">Drop the stego image here</div>
               <div class="dz-sub">
-                or <span>click to browse</span> — must be a PNG stego image
+                or <span>click to browse</span> — PNG only
               </div>
             </div>
             <div
@@ -685,6 +688,7 @@ class="nav-logo"
                 id="detect-file"
                 accept="image/*"
                 onchange="
+                  if (!validateImageFile(this, 'detect-err')) return;
                   resetResults();
                   previewImage(this, 'detect-prev');
                 "
@@ -1698,7 +1702,7 @@ class="nav-logo"
     <!-- Scripts (split by feature — see /js). Order matters: background.js
          declares shared state (selectedPayloadMB) used by ui.js/embed.js -->
     <script src="{{ url_for('static', filename='js/background.js') }}?v=6.0"></script>
-    <script src="{{ url_for('static', filename='js/ui.js') }}?v=6.0"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}?v=9.0"></script>
     <script src="{{ url_for('static', filename='js/embed.js') }}?v=6.0"></script>
     <script src="{{ url_for('static', filename='js/extract.js') }}?v=6.0"></script>
     <script src="{{ url_for('static', filename='js/detect.js') }}?v=6.0"></script>
