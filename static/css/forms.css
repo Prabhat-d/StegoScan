@@ -504,3 +504,45 @@ textarea::placeholder {
   }
 }
 
+/* On touch screens: replace desktop drag-drop text with tap-friendly hint */
+@media (hover: none) and (pointer: coarse) {
+  /* Hide desktop title and sub-text completely */
+  .dz-title,
+  .dz-sub {
+    display: none;
+  }
+
+  /* Embed & Detect: PNG · JPG · WEBP */
+  #embed-drop::after,
+  #detect-drop::after {
+    content: "Select Image\A(PNG \00B7 JPG \00B7 WEBP)";
+    white-space: pre;
+    display: block;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+
+  #embed-drop::after span,
+  #detect-drop::after span {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text3);
+  }
+
+  /* Extract: PNG only */
+  #extract-drop::after {
+    content: "Select Image\A(PNG only)";
+    white-space: pre;
+    display: block;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+}
+
+

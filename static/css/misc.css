@@ -442,6 +442,21 @@
 
     text-align: center;
   }
+
+  /* Format error toast: full-width on mobile, no transform centering quirks */
+  #format-error-toast {
+    left: 12px;
+    right: 12px;
+    top: 14px;
+    transform: translateY(-20px);   /* no translateX needed when left+right are set */
+    max-width: none;
+    font-size: 13px;
+    padding: 12px 16px;
+  }
+
+  #format-error-toast.show {
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 420px) {
