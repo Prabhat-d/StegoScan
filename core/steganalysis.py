@@ -9,6 +9,15 @@ def probe_signature(flat: np.ndarray):
     # Check for known StegoScan payload headers (STGO / PWS1) in the initial bits
     signature_detected = False
     sig_type = ""
+    meta = {
+        "encryption": "No Signature Header",
+        "is_encrypted": False,
+        "content_type": "Raw Image Data / Unknown Format",
+        "exact_size_bytes": None,
+        "filename": None,
+        "header_magic": None
+    }
+
     if flat.size >= 32:
         len_bits = ''.join(str(flat[i] & 1) for i in range(32))
         try:
@@ -19,15 +28,44 @@ def probe_signature(flat: np.ndarray):
                 for b_i in range(0, len(p_bits), 8):
                     pb.append(int(p_bits[b_i:b_i+8], 2))
                 pb = bytes(pb)
+
                 if pb.startswith(MAGIC_STGO):
                     signature_detected = True
                     sig_type = "Unencrypted StegoScan Payload"
+                    meta["encryption"] = "Unencrypted (Plaintext)"
+                    meta["is_encrypted"] = False
+                    meta["header_magic"] = "STGO"
+                    meta["exact_size_bytes"] = len(pb)
+                    try:
+                        import json
+                        raw_json = pb[len(MAGIC_STGO):].decode('utf-8', errors='ignore')
+                        obj = json.loads(raw_json)
+                        t = obj.get("type", "text")
+                        if t == "text":
+                            meta["content_type"] = "Text Message"
+                        elif t == "file":
+                            fname = obj.get("filename", "file")
+                            meta["content_type"] = f"Document / File ({fname})"
+                            meta["filename"] = fname
+                        elif t == "image":
+                            fname = obj.get("filename", "image.png")
+                            meta["content_type"] = f"Hidden Image ({fname})"
+                            meta["filename"] = fname
+                    except Exception:
+                        meta["content_type"] = "Unencrypted Data Package"
+
                 elif pb.startswith(MAGIC_PWS1):
                     signature_detected = True
                     sig_type = "Password-Protected StegoScan Payload"
+                    meta["encryption"] = "Password Protected (AES-256-GCM 🔒)"
+                    meta["is_encrypted"] = True
+                    meta["header_magic"] = "PWS1"
+                    meta["exact_size_bytes"] = len(pb)
+                    meta["content_type"] = "Encrypted Package (Password Required to Decrypt Type)"
         except Exception:
             pass
-    return signature_detected, sig_type
+    return signature_detected, sig_type, meta
+
 
 def chi_pair_analysis(flat: np.ndarray):
     # Chi-Square Pairs of Values (PoV) analysis for LSB embedding detection
@@ -165,25 +203,31 @@ def rs_steganalysis(channel: np.ndarray):
     payload_ratio = float(np.clip(2 * p / (1 - 2 * p + 1e-6) if p < 0.45 else 1.0, 0.0, 1.0))
     return p, payload_ratio
 
-def lsb_plane_b64(channel: np.ndarray):
+def lsb_plane_b64(channel: np.ndarray, max_width: int = 800):
     # Isolates bitplane 0 (LSB) into a visual B&W mask
     img = Image.fromarray(((channel & 1) * 255).astype(np.uint8))
+    if img.width > max_width:
+        h = max(1, int(img.height * (max_width / img.width)))
+        img = img.resize((max_width, h), Image.NEAREST)
     buf = io.BytesIO()
     img.save(buf, format='PNG')
     return base64.b64encode(buf.getvalue()).decode()
 
-def get_bitplanes_b64(arr: np.ndarray):
+def get_bitplanes_b64(arr: np.ndarray, max_width: int = 800):
     # Generates LSB bitplane visualizations for R, G, B channels and combined RGB
     R, G, B = arr[:,:,0], arr[:,:,1], arr[:,:,2]
-    lsb_r = lsb_plane_b64(R)
-    lsb_g = lsb_plane_b64(G)
-    lsb_b = lsb_plane_b64(B)
+    lsb_r = lsb_plane_b64(R, max_width)
+    lsb_g = lsb_plane_b64(G, max_width)
+    lsb_b = lsb_plane_b64(B, max_width)
 
     comb = np.zeros_like(arr)
     comb[:,:,0] = (R & 1) * 255
     comb[:,:,1] = (G & 1) * 255
     comb[:,:,2] = (B & 1) * 255
     img_comb = Image.fromarray(comb.astype(np.uint8))
+    if img_comb.width > max_width:
+        h = max(1, int(img_comb.height * (max_width / img_comb.width)))
+        img_comb = img_comb.resize((max_width, h), Image.NEAREST)
     buf = io.BytesIO()
     img_comb.save(buf, format='PNG')
     lsb_comb = base64.b64encode(buf.getvalue()).decode()
@@ -194,3 +238,5 @@ def get_bitplanes_b64(arr: np.ndarray):
         "blue": lsb_b,
         "combined": lsb_comb
     }
+
+
