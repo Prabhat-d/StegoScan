@@ -1,3 +1,4 @@
+import gc
 import numpy as np
 from flask import Blueprint, request, jsonify
 from PIL import Image, ImageOps
@@ -8,6 +9,7 @@ from core.stego_engine import (
 )
 
 ALLOWED_FORMATS = {'png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'tif'}
+MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024
 
 embed_bp = Blueprint('embed_bp', __name__)
 
@@ -23,8 +25,12 @@ def embed():
             return jsonify({'error': f'Unsupported file format: {friendly}. Please upload a PNG, JPG, WEBP, or BMP image.'}), 400
 
         file.seek(0, 2)
-        original_file_mb = file.tell() / (1024 * 1024)
+        size_bytes = file.tell()
         file.seek(0)
+        original_file_mb = size_bytes / (1024 * 1024)
+        if size_bytes > MAX_FILE_SIZE_BYTES:
+            return jsonify({'error': f'Cover image size ({original_file_mb:.1f} MB) exceeds the 25 MB safety limit. Please upload a smaller image.'}), 400
+
         message = request.form.get('message', '')
         password = request.form.get('password', '').strip()
         payload_type = request.form.get('payload_type', 'text').strip().lower()

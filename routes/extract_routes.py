@@ -1,3 +1,4 @@
+import gc
 import io
 import numpy as np
 from flask import Blueprint, request, jsonify, send_file
@@ -6,6 +7,7 @@ from core.security import decode_payload
 from core.stego_engine import payload_to_response
 
 ALLOWED_FORMATS = {'png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'tif'}
+MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024
 
 extract_bp = Blueprint('extract_bp', __name__)
 
@@ -14,6 +16,13 @@ def extract():
     try:
         file = request.files['image']
         password = request.form.get('password', '').strip()
+
+        file.seek(0, 2)
+        size_bytes = file.tell()
+        file.seek(0)
+        if size_bytes > MAX_FILE_SIZE_BYTES:
+            size_mb = round(size_bytes / (1024 * 1024), 1)
+            return jsonify({'error': f'Image size ({size_mb} MB) exceeds the 25 MB safety limit. Please upload a smaller image.'}), 400
 
         filename = file.filename or ''
         ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
