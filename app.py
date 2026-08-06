@@ -20,8 +20,11 @@ def add_header(response):
     response.headers['Expires'] = '-1'
     return response
 
-UPLOAD_FOLDER = 'uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+try:
+    UPLOAD_FOLDER = '/tmp/uploads' if os.name != 'nt' else 'uploads'
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+except Exception:
+    pass
 
 @app.errorhandler(RequestEntityTooLarge)
 def handle_large_file(e):
