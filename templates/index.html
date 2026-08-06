@@ -733,12 +733,15 @@ class="nav-logo"
 
           <div class="result-box" id="detect-result">
             <!-- DETECTOR TOGGLE BAR -->
-            <div class="detect-toggle-bar" style="display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
-              <button type="button" class="detect-toggle-btn active" id="tab-btn-overview" onclick="toggleDetectView('overview')" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 10px; border: 1px solid var(--accent); background: var(--bg2); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+            <div class="detect-toggle-bar" style="display: flex; gap: 10px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 14px; flex-wrap: wrap;">
+              <button type="button" class="detect-toggle-btn active" id="tab-btn-overview" onclick="toggleDetectView('overview')" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--accent); background: var(--bg2); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
                 <span>📊 Overview</span>
               </button>
-              <button type="button" class="detect-toggle-btn" id="tab-btn-advanced" onclick="toggleDetectView('advanced')" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg1); color: var(--text2); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+              <button type="button" class="detect-toggle-btn" id="tab-btn-advanced" onclick="toggleDetectView('advanced')" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg1); color: var(--text2); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
                 <span>🔬 Advanced Forensics</span>
+              </button>
+              <button type="button" class="detect-toggle-btn" id="tab-btn-metadata" onclick="toggleDetectView('metadata')" style="display: none; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg1); color: var(--text2); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                <span>📦 Payload Metadata</span>
               </button>
             </div>
 
@@ -1415,7 +1418,7 @@ class="nav-logo"
                 <div
                   style="font-size: 10px; color: var(--text3); margin-top: 4px"
                 >
-                  p &lt; 0.05 = suspicious
+                  p &gt; 0.95 = stego parity
                 </div>
               </div>
             </div>
@@ -1538,10 +1541,69 @@ class="nav-logo"
                 line-height: 1.5;
               "
             >
-              ℹ️ This analysis is based on statistical LSB patterns. Results
-              indicate probability, not absolute proof. Very small hidden
+              ℹ️ This analysis is based on statistical LSB patterns. Results indicate probability, not absolute proof.
             </div>
             </div><!-- END ADVANCED VIEW -->
+
+            <!-- PAYLOAD METADATA VIEW (CLOSED BY DEFAULT) -->
+            <div id="view-detect-metadata" class="detect-view-content" style="display: none;">
+              <div class="card" style="background: rgba(123, 94, 167, 0.04); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 22px;">📦</span>
+                    <div>
+                      <h3 style="font-size: 15px; font-weight: 700; margin: 0; color: #fff;">Payload Metadata Inspector</h3>
+                      <p style="font-size: 12px; color: var(--text2); margin: 2px 0 0 0;">Decoded header attributes and cryptographic package analysis</p>
+                    </div>
+                  </div>
+                  <span id="meta-header-badge" style="padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; font-family: var(--mono); background: rgba(255,255,255,0.08); color: var(--text2);">
+                    Analyzing...
+                  </span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 16px;">
+                  <!-- Encryption Status -->
+                  <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 6px;">
+                      🔐 Encryption Status
+                    </div>
+                    <div id="pm-encryption" style="font-size: 13px; font-weight: 700; color: #fff;">—</div>
+                    <div style="font-size: 10px; color: var(--text3); margin-top: 4px;">Cryptographic payload layer</div>
+                  </div>
+
+                  <!-- Content Type -->
+                  <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 6px;">
+                      📄 Detected Data Type
+                    </div>
+                    <div id="pm-content-type" style="font-size: 13px; font-weight: 700; color: #fff;">—</div>
+                    <div style="font-size: 10px; color: var(--text3); margin-top: 4px;">Payload content format</div>
+                  </div>
+
+                  <!-- Payload Size -->
+                  <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 6px;">
+                      💾 Size & Capacity
+                    </div>
+                    <div id="pm-size" style="font-size: 13px; font-weight: 700; color: #fff;">—</div>
+                    <div id="pm-capacity-pct" style="font-size: 10px; color: var(--text3); margin-top: 4px;">Cover capacity usage</div>
+                  </div>
+
+                  <!-- Signature Header -->
+                  <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 14px;">
+                    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 6px;">
+                      🛡️ Signature Protocol
+                    </div>
+                    <div id="pm-signature" style="font-size: 13px; font-weight: 700; color: #fff;">—</div>
+                    <div style="font-size: 10px; color: var(--text3); margin-top: 4px;">Header magic prefix</div>
+                  </div>
+                </div>
+
+                <div id="pm-details-box" style="margin-top: 16px; padding: 14px; border-radius: 10px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); font-size: 12px; line-height: 1.6; color: var(--text2);">
+                  Select an image and run full analysis to inspect payload metadata.
+                </div>
+              </div>
+            </div><!-- END METADATA VIEW -->
           </div>
         </div>
       </main>
@@ -1702,9 +1764,9 @@ class="nav-logo"
     <!-- Scripts (split by feature — see /js). Order matters: background.js
          declares shared state (selectedPayloadMB) used by ui.js/embed.js -->
     <script src="{{ url_for('static', filename='js/background.js') }}?v=6.0"></script>
-    <script src="{{ url_for('static', filename='js/ui.js') }}?v=9.0"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}?v=11.0"></script>
     <script src="{{ url_for('static', filename='js/embed.js') }}?v=6.0"></script>
     <script src="{{ url_for('static', filename='js/extract.js') }}?v=6.0"></script>
-    <script src="{{ url_for('static', filename='js/detect.js') }}?v=6.0"></script>
+    <script src="{{ url_for('static', filename='js/detect.js') }}?v=9.0"></script>
   </body>
 </html>

@@ -5,38 +5,34 @@ let currentBitplanes = null;
 function toggleDetectView(mode) {
   const btnOverview = document.getElementById("tab-btn-overview");
   const btnAdvanced = document.getElementById("tab-btn-advanced");
+  const btnMetadata = document.getElementById("tab-btn-metadata");
+
   const viewOverview = document.getElementById("view-detect-overview");
   const viewAdvanced = document.getElementById("view-detect-advanced");
+  const viewMetadata = document.getElementById("view-detect-metadata");
 
-  if (!btnOverview || !btnAdvanced || !viewOverview || !viewAdvanced) return;
+  const tabs = [
+    { mode: "overview", btn: btnOverview, view: viewOverview },
+    { mode: "advanced", btn: btnAdvanced, view: viewAdvanced },
+    { mode: "metadata", btn: btnMetadata, view: viewMetadata }
+  ];
 
-  if (mode === "overview") {
-    btnOverview.style.borderColor = "var(--accent)";
-    btnOverview.style.background = "var(--bg2)";
-    btnOverview.style.color = "#fff";
-    btnOverview.classList.add("active");
-
-    btnAdvanced.style.borderColor = "var(--border)";
-    btnAdvanced.style.background = "var(--bg1)";
-    btnAdvanced.style.color = "var(--text2)";
-    btnAdvanced.classList.remove("active");
-
-    viewOverview.style.display = "block";
-    viewAdvanced.style.display = "none";
-  } else {
-    btnAdvanced.style.borderColor = "var(--accent)";
-    btnAdvanced.style.background = "var(--bg2)";
-    btnAdvanced.style.color = "#fff";
-    btnAdvanced.classList.add("active");
-
-    btnOverview.style.borderColor = "var(--border)";
-    btnOverview.style.background = "var(--bg1)";
-    btnOverview.style.color = "var(--text2)";
-    btnOverview.classList.remove("active");
-
-    viewOverview.style.display = "none";
-    viewAdvanced.style.display = "block";
-  }
+  tabs.forEach((t) => {
+    if (!t.btn || !t.view) return;
+    if (t.mode === mode) {
+      t.btn.style.borderColor = "var(--accent)";
+      t.btn.style.background = "var(--bg2)";
+      t.btn.style.color = "#fff";
+      t.btn.classList.add("active");
+      t.view.style.display = "block";
+    } else {
+      t.btn.style.borderColor = "var(--border)";
+      t.btn.style.background = "var(--bg1)";
+      t.btn.style.color = "var(--text2)";
+      t.btn.classList.remove("active");
+      t.view.style.display = "none";
+    }
+  });
 }
 
 function switchBitplane(channel, btn) {
@@ -248,6 +244,79 @@ The risk assessment combines <strong>Header Signature Verification</strong>, <st
 <br><br>
 <em>Result interpretation: High risk score indicates confirmed presence of steganographic payload data.</em>
 `;
+
+    // 📦 Payload Metadata Sub-Tab Handling (Shown ONLY when stego payload is detected)
+    const isStego = data.signature_detected || data.suspected || data.score >= 35;
+    const btnMeta = document.getElementById("tab-btn-metadata");
+
+    if (isStego) {
+      if (btnMeta) btnMeta.style.display = "inline-flex";
+
+      const pm = data.payload_meta || {};
+      const pmEnc = document.getElementById("pm-encryption");
+      const pmType = document.getElementById("pm-content-type");
+      const pmSize = document.getElementById("pm-size");
+      const pmCapPct = document.getElementById("pm-capacity-pct");
+      const pmSig = document.getElementById("pm-signature");
+      const pmHeaderBadge = document.getElementById("meta-header-badge");
+      const pmDetailsBox = document.getElementById("pm-details-box");
+
+      if (pmEnc) pmEnc.textContent = pm.encryption || (data.signature_detected ? "Verified Signature" : "Headerless Steganography");
+      if (pmType) pmType.textContent = pm.content_type || "Raw LSB Stego Data";
+
+      const sizeKb = pm.exact_size_bytes
+        ? (pm.exact_size_bytes / 1024).toFixed(1) + " KB (" + pm.exact_size_bytes.toLocaleString() + " bytes)"
+        : "est. ~" + data.rs_estimated_kb + " KB";
+      if (pmSize) pmSize.textContent = sizeKb;
+
+      const capPctStr = ((data.rs_payload_ratio || 0) * 100).toFixed(1);
+      if (pmCapPct) pmCapPct.textContent = `~${capPctStr}% of cover capacity used`;
+
+      if (pmSig) pmSig.textContent = data.signature_detected ? (data.sig_type || "StegoScan Protocol") : "Headerless / Custom Stego";
+
+      if (pmHeaderBadge) {
+        if (data.signature_detected) {
+          pmHeaderBadge.textContent = "✓ Header Signature Verified";
+          pmHeaderBadge.style.cssText = "padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; font-family: var(--mono); background: rgba(0, 229, 160, 0.15); color: var(--green);";
+        } else {
+          pmHeaderBadge.textContent = "⚠ Headerless Stego Payload";
+          pmHeaderBadge.style.cssText = "padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; font-family: var(--mono); background: rgba(245, 158, 11, 0.15); color: var(--amber);";
+        }
+      }
+
+      if (pmDetailsBox) {
+        if (data.signature_detected) {
+          if (pm.is_encrypted) {
+            pmDetailsBox.innerHTML = `
+              <strong>Payload Analysis Summary:</strong><br>
+              • <strong>Encryption:</strong> Payload is protected with AES-256-GCM authenticated encryption.<br>
+              • <strong>Security Guarantee:</strong> Without entering the correct password in the Extract tab, the payload content type (Text, File, or Image) remains cryptographically unreadable.<br>
+              • <strong>Header Magic:</strong> Verified <code style="color:var(--accent);">PWS1</code> StegoScan header prefix.<br>
+              • <strong>Exact Package Size:</strong> ${sizeKb}
+            `;
+          } else {
+            pmDetailsBox.innerHTML = `
+              <strong>Payload Analysis Summary:</strong><br>
+              • <strong>Encryption:</strong> Unencrypted plain text / file package.<br>
+              • <strong>Header Magic:</strong> Verified <code style="color:var(--green);">STGO</code> StegoScan header prefix.<br>
+              • <strong>Decoded Format:</strong> <strong>${pm.content_type}</strong><br>
+              • <strong>Exact Package Size:</strong> ${sizeKb}
+            `;
+          }
+        } else {
+          pmDetailsBox.innerHTML = `
+            <strong>Payload Analysis Summary:</strong><br>
+            • <strong>Format:</strong> Headerless or custom steganography tool.<br>
+            • <strong>Statistical Indicators:</strong> RS Steganalysis, Chi-Square PoV, and LSB distribution shifts indicate artificial bit alterations.<br>
+            • <strong>Estimated Volume:</strong> ~${data.rs_estimated_kb} KB hidden payload (~${capPctStr}% of cover image capacity).
+          `;
+        }
+      }
+    } else {
+      // Clean image: hide Payload Metadata tab completely and force Overview tab
+      if (btnMeta) btnMeta.style.display = "none";
+      toggleDetectView("overview");
+    }
   } catch (e) {
     showErr("detect-err", "Server error. Is Flask running?");
   } finally {

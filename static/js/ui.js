@@ -150,6 +150,12 @@ function resetResults() {
 
   const success = document.getElementById("embed-success");
   if (success) success.style.display = "none";
+
+  const btnMeta = document.getElementById("tab-btn-metadata");
+  if (btnMeta) btnMeta.style.display = "none";
+  if (typeof toggleDetectView === "function") {
+    toggleDetectView("overview");
+  }
 }
 
 function resetEmbedForm() {
