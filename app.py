@@ -6,7 +6,13 @@ from routes.embed_routes import embed_bp
 from routes.extract_routes import extract_bp
 from routes.detect_routes import detect_bp
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static')
+)
 
 # Enforce 25 MB payload limit & disable static caching during dev
 app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024
