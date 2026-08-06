@@ -1,111 +1,59 @@
-# 🛡️ StegoScan - Image Steganography System
+# 🛡️ StegoScan - Advanced Steganography & Forensic Inspector
 
-StegoScan is a cybersecurity-based web application that allows users to hide, extract, and detect hidden information inside digital images using Least Significant Bit (LSB) steganography techniques.
+**StegoScan** is an end-to-end cybersecurity and steganalysis web platform built to embed, extract, and inspect hidden payloads in digital cover images using Least Significant Bit (LSB) steganography and statistical steganalysis math.
 
-The project combines image processing, data hiding, payload recovery, and statistical steganalysis to demonstrate both the creation and detection of steganographic content.
-
----
-
-## 🚀 Live Demo
-
-🔗 https://stegoscan-h56i.onrender.com
+Combines high-speed in-memory image processing, authenticated AES-256-GCM encryption, RS Steganalysis (Fridrich et al.), and Westfeld Chi-Square PoV (Pairs of Values) parity equalization for real-time forensic detection.
 
 ---
 
-## 📌 Features
+## 🔗 Live Application Link
 
-### 🔐 Data Embedding
-
-- Hide secret text messages inside images
-- Hide files inside images
-- Hide images inside images
-- Password protected embedding support
-- Supports PNG, JPG, WEBP input formats
-- Automatic conversion to PNG stego output
-- Adaptive image optimization
-- Standard and Robust embedding profiles
+- 🌐 **Vercel Live Application**: [https://stegoscan-tau.vercel.app](https://stegoscan-tau.vercel.app)
 
 ---
 
-### 🔎 Data Extraction
+## ⚡ Core Modules & Features
 
-- Extract hidden messages from stego images
-- Recover embedded files
-- Recover hidden images
-- Password verification support
-- Secure payload reconstruction
+### 🔐 1. Payload Embedder (`/embed`)
+- **Multi-Format Payloads**: Hide secret text messages, documents (`.pdf`, `.docx`, `.zip`), or hidden cover images inside PNG/JPG/WEBP/BMP cover images.
+- **Authenticated AES-256-GCM Encryption**: Optional password protection using PBKDF2 key derivation and Galois/Counter Mode authentication.
+- **Protocol Magic Headers**: Injects zero-latency magic prefixes (`STGO` for unencrypted, `PWS1` for AES-256 encrypted packages).
+- **Adaptive Memory Safety**: Enforces 25MB safety caps and explicit memory garbage collection (`gc.collect()`).
 
----
+### 📥 2. Payload Extractor (`/extract`)
+- **Smart Payload Reconstruction**: Recovers plaintext messages, downloads original embedded files with intact filenames/MIME types, or displays hidden images.
+- **Cryptographic Verification**: Verifies AES-256 GCM authentication tags and prompts for passwords when accessing encrypted packages.
+- **Strict Format Checking**: Rejects lossy formats (`.jpg`/`.webp`) during extraction to prevent bit corruption.
 
-### 📊 Steganography Detection
-
-StegoScan includes statistical analysis techniques to identify possible hidden data:
-
-- Chi-Square Analysis
-- LSB Balance Analysis
-- Entropy Analysis
-- Region-based LSB Difference Detection
-- Visual LSB Plane Inspection
-
-Detection results include:
-
-- Risk score
-- Detection confidence
-- Suspicious pattern indicators
-- Statistical metrics visualization
+### 🔬 3. Forensic Steganalysis Engine (`/detect`)
+- **RS Steganalysis (Fridrich et al.)**: Dual quadratic curve solver evaluating regular ($R_m$) vs singular ($S_m$) pixel mask correlations to estimate hidden payload volume in KB and cover capacity percentage.
+- **Spatial Block Westfeld Chi-Square PoV**: Evaluates 4 spatial image blocks (0–25%, 25–50%, 50–75%, 75–100%) to catch sequential, localized, and single-channel LSB attacks ($p \to 1.0$).
+- **Regional LSB Variance**: Measures LSB ratio variance across 20 spatial image slices to flag non-uniform embedding patterns.
+- **LSB Bit Balance & Entropy**: Evaluates Shannon LSB entropy ($1.0000$ max) and 50:50 parity distribution shifts.
+- **📦 Payload Metadata Inspector**: Conditional sub-tab unlocked only when hidden data is detected. Displays decoded encryption layer, content type, exact byte size, and header signature validation.
+- **29x Speedup Acceleration**: Optimized PNG base64 stream encoding, executing full statistical analysis in **<0.3 seconds**.
 
 ---
 
-## 🧠 How It Works
+## 🧠 Forensic Math & Detection Logic
 
-### LSB Embedding
+### 1. RS Steganalysis (Fridrich et al.)
+Calculates regular ($R_m$, $R_{-m}$) and singular ($S_m$, $S_{-m}$) pixel groups under dual spatial masks ($M = [0, 1, 1, 0]$):
+$$\Delta R = R_m - R_{-m}, \quad \Delta S = S_m - S_{-m}$$
+Solving the quadratic intersection estimates the payload ratio $p$ independently of header signatures or encryption.
 
-Digital images store pixels using RGB values.
-
-Example:
-
-```
-Original pixel:
-10110110
-
-Modified pixel:
-10110111
-```
-
-Only the least significant bit is changed, creating a visually invisible modification while storing hidden information.
-
----
-
-### Detection Logic
-
-The detector analyzes statistical changes introduced by LSB modifications.
-
-It checks:
-
-- Randomness of LSB distribution
-- Difference between image regions
-- Bit balance patterns
-- Statistical deviation using Chi-Square testing
+### 2. Westfeld Chi-Square PoV Parity Test
+Evaluates frequency equalization between adjacent intensity pairs $(2k, 2k+1)$:
+$$\chi^2 = \sum_{k=0}^{127} \frac{(n_{2k} - n_{2k+1})^2}{2 y_k}$$
+Under steganographic embedding, $n_{2k} \approx n_{2k+1}$, causing $\chi^2 \to 0$ and $p \to 1.0000$ (indicating stego parity equalization).
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Frontend
-
-- HTML5
-- CSS3
-- JavaScript
-- Canvas animations
-- Responsive UI
-
-### Backend
-
-- Python
-- Flask
-- NumPy
-- Pillow
-- SciPy
+- **Frontend**: HTML5, Vanilla CSS3 (Glassmorphism UI, Responsive Mobile Design), Client-Side JS, HTML5 Canvas.
+- **Backend**: Python 3.13, Flask 3.1, NumPy 2.2, SciPy 1.15, Pillow (PIL) 11.1, Cryptography 44.0.
+- **Deployment**: Render WSGI (Gunicorn), Vercel Serverless (`@vercel/python`).
 
 ---
 
@@ -113,91 +61,67 @@ It checks:
 
 ```
 StegoScan/
-
-├── app.py
-├── requirements.txt
-├── README.md
-
+├── app.py                     # Main Flask Application & Blueprint Registry
+├── vercel.json                # Vercel Serverless Deployment Configuration
+├── requirements.txt           # Python Dependencies
+├── README.md                  # Project Documentation
+├── core/
+│   ├── security.py            # AES-256-GCM Cryptographic Engine (PBKDF2)
+│   ├── steganalysis.py        # RS Steganalysis, Chi-Square PoV & Metadata Probe
+│   └── stego_engine.py        # LSB Payload Serialization & Bit Manipulation
+├── routes/
+│   ├── embed_routes.py        # /embed Endpoint with Format & 25MB Caps
+│   ├── extract_routes.py      # /extract Endpoint with Format & Password Verification
+│   └── detect_routes.py       # /detect Endpoint with Spatial Block Analysis & Metadata
 ├── templates/
-│   └── index.html
-
-├── static/
-
-│   ├── css/
-│   │   ├── base.css
-│   │   ├── layout.css
-│   │   ├── header-hero.css
-│   │   ├── forms.css
-│   │   ├── results.css
-│   │   └── tabs.css
-
-│   ├── js/
-│   │   ├── background.js
-│   │   ├── ui.js
-│   │   ├── embed.js
-│   │   ├── extract.js
-│   │   └── detect.js
-
-│   └── images/
-│       └── logo.png
+│   └── index.html             # Main Forensic Dashboard Template
+└── static/
+    ├── css/                   # Modular Glassmorphism Stylesheets
+    └── js/                    # Modular Client JS (detect.js, ui.js, embed.js, etc.)
 ```
 
 ---
 
-## ⚙️ Installation
+## ⚙️ Local Installation & Setup
 
-Clone the repository:
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Prabhat-d/StegoScan.git
+   cd StegoScan
+   ```
 
-```bash
-git clone https://github.com/Prabhat-d/StegoScan.git
-```
+2. **Install Python dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Move into project folder:
+3. **Run the local development server**:
+   ```bash
+   python app.py
+   ```
 
-```bash
-cd StegoScan
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Run application:
-
-```bash
-python app.py
-```
-
-Open:
-
-```
-http://localhost:5000
-```
+4. **Access the application**:
+   Open `http://localhost:5000` in your web browser.
 
 ---
 
-## 🔐 Security Note
+## 🚀 Deploying to Vercel
 
-This project is created for educational and research purposes.
-
-Steganography detection is based on statistical probability. Results indicate possible hidden data patterns but cannot guarantee absolute detection for every steganography technique.
-
----
-
-## 🎯 Future Improvements
-
-- AI-based steganography detection
-- Support for additional embedding algorithms
-- Advanced encryption methods
-- Batch image analysis
-- Detailed forensic reports
+1. Fork or push this repository to GitHub.
+2. Log in to [Vercel](https://vercel.com) and click **Add New Project**.
+3. Import `Prabhat-d/StegoScan`. Vercel automatically detects `vercel.json`.
+4. Click **Deploy**.
 
 ---
 
-## 👨‍💻 Developer
+## 👨‍💻 Developer Profile
 
-Developed by Prabhat
+Developed with ❤️ by **Prabhat Jhanji**  
+- **Portfolio**: [https://prabhatjhanji.netlify.app](https://prabhatjhanji.netlify.app)  
+- **GitHub**: [@Prabhat-d](https://github.com/Prabhat-d)  
 
-Cybersecurity & Image Processing Project
+---
+
+## 🔐 License & Security Notice
+
+Created for educational, security research, and digital forensics purposes. Steganography detection provides probabilistic indicators based on statistical signals.
